@@ -8,7 +8,7 @@
 | TeamName    |         DB101         |
 | Captain     |     Xingyuan Liu     |
 | Captain     |  xliu168@illinois.edu  |
-| Member1     |       Yuansui Xv       |
+| Member1     |       Yuansui Xu       |
 | Member1     | yuansui2@Illinois.edu  |
 | Member2     | Hongbin Yang |
 | Member2     | hongbin3@illinois.edu |
