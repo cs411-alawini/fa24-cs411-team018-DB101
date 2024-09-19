@@ -17,12 +17,12 @@
 
 ## Project Information
 
-|   Info      |        Description     |
-| ----------- | ---------------------- |
-|  Title      |       ProjectTitle     |
-| System URL  |      link_to_system    |
-| Video Link  |      link_to_video     |
+| Info       | Description      |
+| ---------- | ---------------- |
+| Title      | EduRank Insights |
+| System URL | link_to_system   |
+| Video Link | link_to_video    |
 
 ## Project Summary
 
-This is a summary of the project!
+We aim to develop an information website focusing on global renowned university rankings, providing  comprehensive and in-depth school information for students interested in higher education.  On this platform, students can view university rankings derived from the integration of multiple reliable lists,  gaining detailed insights into university ranking information. Additionally, users can compare universities of  interest, allowing them to understand the distinct advantages and differences in key metrics across various  institutions. Furthermore, we plan to incorporate historical admissions data to offer users reference information  for their applications.
