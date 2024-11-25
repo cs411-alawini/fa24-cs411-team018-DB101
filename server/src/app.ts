@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import userRouters from './routes/userRoutes';
+import rankingRoutes from './routes/rankingRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3007;
@@ -10,6 +11,7 @@ const PORT = process.env.PORT || 3007;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/ranking', rankingRoutes);
 
 app.get('/api/', (req, res) => {
     res.send('Home page');

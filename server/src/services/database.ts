@@ -63,3 +63,76 @@ export async function deleteUser(userID: number): Promise<number> {
         throw error;
     }
 }
+
+export async function searchRanking(
+    keyword: string,
+    countryFilter?: string
+): Promise<any[]> {
+    try {
+        const sqlQuery = `
+            SELECT 
+                rm.universityName,
+                rm.source,
+                rm.academicRep,
+                rm.employerRep,
+                rm.facultyStudentScore,
+                rm.citationPerFaculty,
+                rm.internationalScore,
+                u.location,
+                u.country
+            FROM 
+                RankingMetric rm
+            INNER JOIN 
+                University u
+            ON 
+                rm.universityName = u.universityName
+            WHERE 
+                rm.universityName LIKE ?
+                ${countryFilter ? "AND u.country LIKE ?" : ""}
+        `;
+
+        const queryParams = [`%${keyword}%`];
+        if (countryFilter) queryParams.push(`%${countryFilter}%`);
+
+        const [rows] = await pool.query(sqlQuery, queryParams);
+        return rows as any[];
+    } catch (error) {
+        console.error("Error in searchRanking:", error);
+        throw error;
+    }
+}
+
+// 添加收藏
+export async function addFavourite(userID: number, universityName: string): Promise<void> {
+    const sqlQuery = `INSERT INTO Favourite (userID, universityName) VALUES (?, ?)`;
+    try {
+        await pool.execute(sqlQuery, [userID, universityName]);
+    } catch (error) {
+        console.error("Error in addFavourite:", error);
+        throw error;
+    }
+}
+
+// 移除收藏
+export async function removeFavourite(userID: number, universityName: string): Promise<void> {
+    const sqlQuery = `DELETE FROM Favourite WHERE userID = ? AND universityName = ?`;
+    try {
+        await pool.execute(sqlQuery, [userID, universityName]);
+    } catch (error) {
+        console.error("Error in removeFavourite:", error);
+        throw error;
+    }
+}
+
+
+// 检查是否已收藏
+export async function isFavourite(userID: number, universityName: string): Promise<boolean> {
+    const sqlQuery = `SELECT * FROM Favourite WHERE userID = ? AND universityName = ?`;
+    try {
+        const [rows] = await pool.execute(sqlQuery, [userID, universityName]);
+        return (rows as RowDataPacket[]).length > 0;
+    } catch (error) {
+        console.error("Error in isFavourite:", error);
+        throw error;
+    }
+}
