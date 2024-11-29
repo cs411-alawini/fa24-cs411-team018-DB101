@@ -65,10 +65,11 @@ export async function deleteUser(userID: number): Promise<number> {
 }
 
 export async function searchRanking(
-    keyword: string,
-    countryFilter?: string
+    keyword?: string, // 将 keyword 设置为可选参数
+    countryFilter?: string // 保留 countryFilter 的可选参数
 ): Promise<any[]> {
     try {
+        // 构建 SQL 查询的基础语句
         const sqlQuery = `
             SELECT 
                 rm.universityName,
@@ -86,14 +87,17 @@ export async function searchRanking(
                 University u
             ON 
                 rm.universityName = u.universityName
-            WHERE 
-                rm.universityName LIKE ?
+            WHERE 1=1
+                ${keyword ? "AND rm.universityName LIKE ?" : ""}
                 ${countryFilter ? "AND u.country LIKE ?" : ""}
         `;
 
-        const queryParams = [`%${keyword}%`];
+        // 构建查询参数
+        const queryParams: string[] = [];
+        if (keyword) queryParams.push(`%${keyword}%`);
         if (countryFilter) queryParams.push(`%${countryFilter}%`);
 
+        // 执行查询
         const [rows] = await pool.query(sqlQuery, queryParams);
         return rows as any[];
     } catch (error) {
@@ -101,6 +105,7 @@ export async function searchRanking(
         throw error;
     }
 }
+
 
 // 添加收藏
 export async function addFavourite(userID: number, universityName: string): Promise<void> {

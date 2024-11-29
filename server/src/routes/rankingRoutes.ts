@@ -7,20 +7,17 @@ const router = Router();
 // 搜索大学排名
 router.get("/search", async (req: Request, res: Response) => {
     const { keyword, country } = req.query;
-    if (!keyword) {
-        res.status(400).json({ success: false, message: "Keyword is required" });
-        return;
-    }
 
     try {
-
-        const rankings = await searchRanking(keyword as string, country as string);
+        // 如果 keyword 未提供，则传递空字符串或处理逻辑
+        const rankings = await searchRanking((keyword as string) || "", country as string);
         res.status(200).json({ success: true, data: rankings });
     } catch (error) {
         console.error("Error in /searchRanking:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
+
 
 //创建API获取国家列表
 router.get("/countries", async (req: Request, res: Response) => {

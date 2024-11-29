@@ -3,14 +3,16 @@ import axios from "axios";
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3007";
 
 // 搜索大学排名
-export const searchRankings = (keyword: string, country?: string) => {
+export const searchRankings = (keyword?: string, country?: string) => {
     console.log("11111");
     const requestURL = `${BASE_URL}/api/ranking/search`;
     console.log(`Request URL: ${requestURL}`); // 打印请求路径
-    return axios.get(`${BASE_URL}/api/ranking/search`, {
-        params: { keyword, country },
+
+    return axios.get(requestURL, {
+        params: { keyword: keyword || undefined, country }, // 如果 keyword 是空字符串或 undefined，将其排除
     });
 };
+
 
 // 添加收藏
 export const addFavouriteAPI = (userID: number, universityName: string) => {
