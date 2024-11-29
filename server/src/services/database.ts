@@ -136,3 +136,16 @@ export async function isFavourite(userID: number, universityName: string): Promi
         throw error;
     }
 }
+
+// 查询国家列表的函数
+export async function getCountriesFromDatabase() {
+    try {
+      // 执行查询
+      const [rows]: any = await pool.query("SELECT DISTINCT country FROM University;");
+      // 直接返回国家列表
+      return rows; // rows 应该是一个包含所有国家的数组
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+      throw new Error("Failed to fetch countries");
+    }
+  }
