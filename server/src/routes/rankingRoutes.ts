@@ -6,13 +6,14 @@ const router = Router();
 
 // 搜索大学排名
 router.get("/search", async (req: Request, res: Response) => {
-    const { keyword, country, source } = req.query;
+    const { keyword, country, source, academicRepFilter } = req.query;
 
     try {
         const rankings = await searchRanking(
             (keyword as string) || "",
             (country as string) || "",
-            (source as string) || "" // 将 source 参数传递给数据库查询函数
+            (source as string) || "",
+            (academicRepFilter as string) || "" // 传递 academicRepFilter
         );
         res.status(200).json({ success: true, data: rankings });
     } catch (error) {
@@ -20,6 +21,7 @@ router.get("/search", async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
+
 
 
 

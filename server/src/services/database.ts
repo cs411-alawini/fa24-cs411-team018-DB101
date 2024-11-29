@@ -67,9 +67,19 @@ export async function deleteUser(userID: number): Promise<number> {
 export async function searchRanking(
     keyword: string,
     countryFilter?: string,
-    sourceFilter?: string
+    sourceFilter?: string,
+    academicRepFilter?: string
 ): Promise<any[]> {
     try {
+        let academicRepCondition = "";
+        if (academicRepFilter === "<30") {
+            academicRepCondition = "AND rm.academicRep < 30";
+        } else if (academicRepFilter === "30-60") {
+            academicRepCondition = "AND rm.academicRep BETWEEN 30 AND 60";
+        } else if (academicRepFilter === ">60") {
+            academicRepCondition = "AND rm.academicRep > 60";
+        }
+
         const sqlQuery = `
             SELECT 
                 rm.universityName,
@@ -91,11 +101,12 @@ export async function searchRanking(
                 rm.universityName LIKE ?
                 ${countryFilter ? "AND u.country LIKE ?" : ""}
                 ${sourceFilter ? "AND rm.source = ?" : ""}
+                ${academicRepCondition} -- 添加 Academic Rep 筛选条件
         `;
 
         const queryParams = [`%${keyword}%`];
         if (countryFilter) queryParams.push(`%${countryFilter}%`);
-        if (sourceFilter) queryParams.push(sourceFilter); // 添加 source 条件
+        if (sourceFilter) queryParams.push(sourceFilter);
 
         const [rows] = await pool.query(sqlQuery, queryParams);
         return rows as any[];

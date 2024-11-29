@@ -11,6 +11,7 @@ const RankingPage: React.FC = () => {
     const [keyword, setKeyword] = useState<string>(""); // 搜索关键词
     const [source, setSource] = useState<string>(""); // 来源筛选
     const [country, setCountry] = useState<string>(""); // 国家筛选
+    const [academicRepFilter, setAcademicRepFilter] = useState<string>(""); // Academic Rep 筛选
     const [rankings, setRankings] = useState<any[]>([]); // 排名数据
     const [countries, setCountries] = useState<string[]>([]); // 国家列表
     const [alert, setAlert] = useState<string | null>(null); // 提示信息
@@ -42,9 +43,9 @@ const RankingPage: React.FC = () => {
     const handleSearch = async () => {
         console.log("Search button clicked");
         try {
-            const response = await searchRankings(keyword, country, source); // 添加 source 参数
+            const response = await searchRankings(keyword, country, source, academicRepFilter); // 添加 academicRepFilter 参数
             console.log("API Response:", JSON.stringify(response.data, null, 2));
-            const rankingData = response.data.data; // 提取嵌套的 `data` 数组
+            const rankingData = response.data.data; // 提取嵌套的 data 数组
             setRankings(
                 Array.isArray(rankingData)
                     ? rankingData.map((item) => ({ ...item, isFavourite: false }))
@@ -56,6 +57,7 @@ const RankingPage: React.FC = () => {
             setAlert("Failed to fetch rankings. Please try again.");
         }
     };
+    
     
 
     const loadMore = () => {
@@ -104,30 +106,45 @@ const RankingPage: React.FC = () => {
                     className="p-2 border rounded w-full mb-2"
                 />
 
-                {/* 国家筛选下拉框 */}
-                <select
-                    value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    className="p-2 border rounded w-full mb-2"
-                >
-                    <option value="">All Countries</option>
-                    {countries.map((c) => (
-                        <option key={c} value={c}>
-                            {c}
-                        </option>
-                    ))}
-                </select>
+                <div className="mb-4">
+                    {/* 国家筛选下拉框 */}
+                    <select
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        className="p-2 border rounded w-full mb-2"
+                    >
+                        <option value="">All Countries</option>
+                        {countries.map((c) => (
+                            <option key={c} value={c}>
+                                {c}
+                            </option>
+                        ))}
+                    </select>
 
-                {/* 来源筛选下拉框 */}
-                <select
-                    value={source}
-                    onChange={(e) => setSource(e.target.value)}
-                    className="p-2 border rounded w-full"
-                >
-                    <option value="">All Sources</option>
-                    <option value="QS">QS</option>
-                    <option value="Times">Times</option>
-                </select>
+                    {/* 来源筛选下拉框 */}
+                    <select
+                        value={source}
+                        onChange={(e) => setSource(e.target.value)}
+                        className="p-2 border rounded w-full mb-2"
+                    >
+                        <option value="">All Sources</option>
+                        <option value="QS">QS</option>
+                        <option value="Times">Times</option>
+                    </select>
+
+                    {/* Academic Rep 筛选下拉框 */}
+                    <select
+                        value={academicRepFilter}
+                        onChange={(e) => setAcademicRepFilter(e.target.value)}
+                        className="p-2 border rounded w-full"
+                    >
+                        <option value="">All Academic Rep</option>
+                        <option value="<30">{"< 30"}</option>
+                        <option value="30-60">30 - 60</option>
+                        <option value=">60">{"> 60"}</option>
+                    </select>
+                </div>
+
             </div>
 
             <button
