@@ -39,7 +39,15 @@ const RankingPage: React.FC = () => {
     }, []);
     
     
-
+    const handleClear = () => {
+        // 清空所有筛选条件
+        setKeyword("");
+        setCountry("");
+        setSource("");
+        setAcademicRepFilter("");
+        setRankings([]); // 清空当前显示的结果
+    };
+    
     const handleSearch = async () => {
         console.log("Search button clicked");
         try {
@@ -147,12 +155,21 @@ const RankingPage: React.FC = () => {
 
             </div>
 
-            <button
-                onClick={handleSearch}
-                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-            >
-                Search
-            </button>
+            <div className="flex gap-4">
+                <button
+                    onClick={handleSearch}
+                    className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                >
+                    Search
+                </button>
+                <button
+                    onClick={handleClear}
+                    className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+                >
+                    Clear
+                </button>
+            </div>
+
 
             <div className="mt-6">
     {displayedRankings.length > 0 ? (
