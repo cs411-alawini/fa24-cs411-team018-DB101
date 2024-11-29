@@ -123,28 +123,55 @@ const RankingPage: React.FC = () => {
             </button>
 
             <div className="mt-6">
-                {displayedRankings.length > 0 ? (
-                    <ul>
-                        {displayedRankings.map((ranking, index) => (
-                            <li key={index}>
-                                <div>{ranking.universityName || "N/A"}</div>
-                                <button
-                                    onClick={() =>
-                                        toggleFavourite(
-                                            ranking.universityName,
-                                            ranking.isFavourite
-                                        )
-                                    }
-                                >
-                                    {ranking.isFavourite ? "💖" : "🤍"}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No results found.</p>
-                )}
-            </div>
+    {displayedRankings.length > 0 ? (
+        <table className="w-full border-collapse border border-gray-200">
+            <thead>
+                <tr className="bg-gray-100">
+                    <th className="border border-gray-300 px-4 py-2">University Name</th>
+                    <th className="border border-gray-300 px-4 py-2">Source</th>
+                    <th className="border border-gray-300 px-4 py-2">Academic Rep</th>
+                    <th className="border border-gray-300 px-4 py-2">Employer Rep</th>
+                    <th className="border border-gray-300 px-4 py-2">Faculty/Student</th>
+                    <th className="border border-gray-300 px-4 py-2">Citation/Faculty</th>
+                    <th className="border border-gray-300 px-4 py-2">International Score</th>
+                    <th className="border border-gray-300 px-4 py-2">Location</th>
+                    <th className="border border-gray-300 px-4 py-2">Country</th>
+                    <th className="border border-gray-300 px-4 py-2">Favourite</th>
+                </tr>
+            </thead>
+            <tbody>
+                {displayedRankings.map((ranking, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-2">{ranking.universityName || "N/A"}</td>
+                        <td className="border border-gray-300 px-4 py-2">{ranking.source}</td>
+                        <td className="border border-gray-300 px-4 py-2">{ranking.academicRep}</td>
+                        <td className="border border-gray-300 px-4 py-2">{ranking.employerRep}</td>
+                        <td className="border border-gray-300 px-4 py-2">{ranking.facultyStudentScore}</td>
+                        <td className="border border-gray-300 px-4 py-2">{ranking.citationPerFaculty}</td>
+                        <td className="border border-gray-300 px-4 py-2">{ranking.internationalScore}</td>
+                        <td className="border border-gray-300 px-4 py-2">{ranking.location}</td>
+                        <td className="border border-gray-300 px-4 py-2">{ranking.country}</td>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                            <button
+                                onClick={() =>
+                                    toggleFavourite(
+                                        ranking.universityName,
+                                        ranking.isFavourite
+                                    )
+                                }
+                            >
+                                {ranking.isFavourite ? "💖" : "🤍"}
+                            </button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    ) : (
+        <p>No results found.</p>
+    )}
+</div>
+
 
             {displayedRankings.length < rankings.length && (
                 <button onClick={loadMore}>Load More</button>
