@@ -9,6 +9,7 @@ import {
 
 const RankingPage: React.FC = () => {
     const [keyword, setKeyword] = useState<string>(""); // 搜索关键词
+    const [source, setSource] = useState<string>(""); // 来源筛选
     const [country, setCountry] = useState<string>(""); // 国家筛选
     const [rankings, setRankings] = useState<any[]>([]); // 排名数据
     const [countries, setCountries] = useState<string[]>([]); // 国家列表
@@ -41,9 +42,9 @@ const RankingPage: React.FC = () => {
     const handleSearch = async () => {
         console.log("Search button clicked");
         try {
-            const response = await searchRankings(keyword, country);
+            const response = await searchRankings(keyword, country, source); // 添加 source 参数
             console.log("API Response:", JSON.stringify(response.data, null, 2));
-            const rankingData = response.data.data; // 提取嵌套的 data 数组
+            const rankingData = response.data.data; // 提取嵌套的 `data` 数组
             setRankings(
                 Array.isArray(rankingData)
                     ? rankingData.map((item) => ({ ...item, isFavourite: false }))
@@ -55,6 +56,7 @@ const RankingPage: React.FC = () => {
             setAlert("Failed to fetch rankings. Please try again.");
         }
     };
+    
 
     const loadMore = () => {
         setPage((prevPage) => prevPage + 1); // 增加页码
@@ -93,6 +95,7 @@ const RankingPage: React.FC = () => {
             )}
 
             <div className="mb-4">
+                {/* 搜索关键词输入框 */}
                 <input
                     type="text"
                     placeholder="Search by keyword"
@@ -101,11 +104,11 @@ const RankingPage: React.FC = () => {
                     className="p-2 border rounded w-full mb-2"
                 />
 
-                {/* 国家下拉框 */}
+                {/* 国家筛选下拉框 */}
                 <select
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    className="p-2 border rounded w-full"
+                    className="p-2 border rounded w-full mb-2"
                 >
                     <option value="">All Countries</option>
                     {countries.map((c) => (
@@ -114,7 +117,19 @@ const RankingPage: React.FC = () => {
                         </option>
                     ))}
                 </select>
+
+                {/* 来源筛选下拉框 */}
+                <select
+                    value={source}
+                    onChange={(e) => setSource(e.target.value)}
+                    className="p-2 border rounded w-full"
+                >
+                    <option value="">All Sources</option>
+                    <option value="QS">QS</option>
+                    <option value="Times">Times</option>
+                </select>
             </div>
+
             <button
                 onClick={handleSearch}
                 className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
