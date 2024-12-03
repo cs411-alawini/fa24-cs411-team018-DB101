@@ -1,6 +1,8 @@
 import { User } from "../models/User";
+import { University } from "../models/University";
 import pool from "./connection";
 import { RowDataPacket } from "mysql2";
+import { ResultSetHeader } from "mysql2/promise";
 
 export async function getUserByID(userID: number): Promise<User> {
     const [rows] = await pool.query(`SELECT * FROM User u WHERE u.userID LIKE '${userID}';`);
@@ -165,3 +167,139 @@ export async function getCountriesFromDatabase() {
       throw new Error("Failed to fetch countries");
     }
   }
+
+/**
+ * Fetches all universities from the database.
+ * @returns Promise resolving to an array of University objects.
+ */
+export async function getAllUniversities(): Promise<University[]> {
+    const sqlQuery = `
+        SELECT universityName, description, establishment, location, country, popularity
+        FROM University
+        ORDER BY popularity DESC;
+    `;
+    try {
+        const [rows] = await pool.query<RowDataPacket[]>(sqlQuery);
+        return rows as University[];
+    } catch (error) {
+        console.error("Error in getAllUniversities:", error);
+        throw error;
+    }
+}
+
+/**
+ * Fetches a single university by its name.
+ * @param universityName - The name of the university to fetch.
+ * @returns Promise resolving to a University object or null if not found.
+ */
+export async function getUniversityByName(universityName: string): Promise<University | null> {
+    const sqlQuery = `
+        SELECT universityName, description, establishment, location, country, popularity
+        FROM University
+        WHERE universityName = ?;
+    `;
+    try {
+        const [rows] = await pool.query<RowDataPacket[]>(sqlQuery, [universityName]);
+        const universities = rows as University[];
+        return universities[0] || null;
+    } catch (error) {
+        console.error("Error in getUniversityByName:", error);
+        throw error;
+    }
+}
+
+/**
+ * Creates a new university in the database.
+ * @param university - The University object to create.
+ * @returns Promise resolving to the created University object.
+ */
+export async function createUniversity(university: Omit<University, 'universityName'> & { universityName: string }): Promise<University> {
+    const sqlQuery = `
+        INSERT INTO University (universityName, description, establishment, location, country, popularity)
+        VALUES (?, ?, ?, ?, ?, ?);
+    `;
+    const { universityName, description, establishment, location, country, popularity } = university;
+    try {
+        const [result] = await pool.query<ResultSetHeader>(sqlQuery, [
+            universityName,
+            description,
+            establishment,
+            location,
+            country,
+            popularity
+        ]);
+        // Optionally, you can verify if the insert was successful by checking affectedRows
+        if (result.affectedRows === 0) {
+            throw new Error("Failed to create university");
+        }
+        return { universityName, description, establishment, location, country, popularity };
+    } catch (error) {
+        console.error("Error in createUniversity:", error);
+        throw error;
+    }
+}
+
+/**
+ * Updates an existing university's details.
+ * @param universityName - The name of the university to update.
+ * @param updatedFields - An object containing the fields to update.
+ * @returns Promise resolving to the updated University object or null if not found.
+ */
+export async function updateUniversity(
+    universityName: string,
+    updatedFields: Partial<Omit<University, 'universityName'>>
+): Promise<University | null> {
+    const allowedFields: (keyof Omit<University, 'universityName'>)[] = ['description', 'establishment', 'location', 'country', 'popularity'];
+    const setClauses: string[] = [];
+    const values: any[] = [];
+
+    for (const key of allowedFields) {
+        if (key in updatedFields) {
+            setClauses.push(`${key} = ?`);
+            values.push(updatedFields[key]);
+        }
+    }
+
+    if (setClauses.length === 0) {
+        throw new Error("No valid fields provided for update");
+    }
+
+    const setClause = setClauses.join(', ');
+    const sqlQuery = `
+        UPDATE University
+        SET ${setClause}
+        WHERE universityName = ?;
+    `;
+    values.push(universityName);
+
+    try {
+        const [result] = await pool.query<ResultSetHeader>(sqlQuery, values);
+        if (result.affectedRows === 0) {
+            return null; // University not found
+        }
+        // Fetch the updated university
+        return await getUniversityByName(universityName);
+    } catch (error) {
+        console.error("Error in updateUniversity:", error);
+        throw error;
+    }
+}
+
+/**
+ * Deletes a university from the database.
+ * @param universityName - The name of the university to delete.
+ * @returns Promise resolving to true if deletion was successful, false otherwise.
+ */
+export async function deleteUniversity(universityName: string): Promise<boolean> {
+    const sqlQuery = `
+        DELETE FROM University
+        WHERE universityName = ?;
+    `;
+    try {
+        const [result] = await pool.query<ResultSetHeader>(sqlQuery, [universityName]);
+        return result.affectedRows > 0;
+    } catch (error) {
+        console.error("Error in deleteUniversity:", error);
+        throw error;
+    }
+}

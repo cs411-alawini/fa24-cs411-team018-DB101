@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import userRouters from './routes/userRoutes';
 import rankingRoutes from './routes/rankingRoutes';
+import universityRoutes from './routes/universityRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3007;
@@ -17,6 +18,7 @@ app.get('/api/', (req, res) => {
     res.send('Home page');
 });
 app.use('/api/user', userRouters);
+app.use('/api/university', universityRoutes);
 
 // app.get('*', (req, res) => {
 //     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
