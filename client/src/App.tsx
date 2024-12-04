@@ -5,6 +5,7 @@ import LoginPage from './pages/loginPage';
 import RegisterPage from './pages/registerPage';
 import UserPage from './pages/userPage';
 import RankingPage from './components/ranking'; // 引入 RankingPage
+import Homepage from './pages/homePage';
 
 
  const App: React.FC = () => {
@@ -12,6 +13,8 @@ import RankingPage from './components/ranking'; // 引入 RankingPage
     <Router>
       <Routes>
         <Route path='/' element={<LoginPage/>}>
+        </Route>
+        <Route path='/home' element={<Homepage/>}>
         </Route>
         <Route path='/register' element={<RegisterPage/>}>
         </Route>

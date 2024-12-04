@@ -26,7 +26,8 @@ const LoginForm: React.FC = () => {
                     message: 'Login successful! Redirecting...' 
                 });
                 setTimeout(() => {
-                    navigate(`/user/${response.userID!.toString()}`);
+                    // navigate(`/user/${response.userID!.toString()}`);
+                    navigate(`/home`);
                 }, 1500);
                // navigate('/dashboard');
             } else {
