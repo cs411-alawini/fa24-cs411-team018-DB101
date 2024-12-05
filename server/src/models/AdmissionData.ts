@@ -8,6 +8,6 @@ export interface AdmissionData{
     languageProficiencyType: string,
     languageScore: number,
     GRE: number,
-    notes: string,
+    Notes: string,
     userID: number
 } 
