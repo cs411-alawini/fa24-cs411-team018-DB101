@@ -4,6 +4,7 @@ import path from 'path';
 import userRouters from './routes/userRoutes';
 import rankingRoutes from './routes/rankingRoutes';
 import universityRoutes from './routes/universityRoutes';
+import admissionRoutes from './routes/admissionRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 3007;
@@ -19,6 +20,7 @@ app.get('/api/', (req, res) => {
 });
 app.use('/api/user', userRouters);
 app.use('/api/university', universityRoutes);
+app.use('/api/admission',admissionRoutes);
 
 // app.get('*', (req, res) => {
 //     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
