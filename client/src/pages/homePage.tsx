@@ -89,7 +89,7 @@ const Homepage = () => {
                         <p className="text-gray-600 mb-4">
                             Get to know previous admission data. You can also offer datapoints to help others here.
                         </p>
-                        <a href="/admission-data" className="text-blue-600 font-medium flex items-center hover:text-blue-700">
+                        <a href="/admission" className="text-blue-600 font-medium flex items-center hover:text-blue-700">
                             Enter <ArrowRight size={16} className="ml-1" />
                         </a>
                     </div>
