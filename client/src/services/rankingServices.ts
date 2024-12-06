@@ -18,22 +18,22 @@ export const searchRankings = (
     });
 };
 
-
-
-
 // 添加收藏
 export const addFavouriteAPI = (userID: number, universityName: string) => {
     return axios.post(`${BASE_URL}/api/ranking/favourite`, { userID, universityName });
 };
 
-// 取消收藏
+
 export const removeFavouriteAPI = (userID: number, universityName: string) => {
     return axios.delete(`${BASE_URL}/api/ranking/favourite`, {
-        data: { userID, universityName },
+        params: { userID, universityName }, // 通过 query 参数发送
     });
 };
 
-// 检查是否已收藏（可选，如果需要动态检查）
+
+
+
+// 检查是否已收藏
 export const isFavouriteAPI = (userID: number, universityName: string) => {
     return axios.get(`${BASE_URL}/api/ranking/favourite`, {
         params: { userID, universityName },

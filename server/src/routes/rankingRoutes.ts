@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase } from "../services/database";
 import { log } from "console";
 
+
 const router = Router();
 
 // 搜索大学排名
@@ -38,59 +39,67 @@ router.get("/countries", async (req: Request, res: Response) => {
       } 
 });
 
-// 添加收藏
 router.post("/favourite", async (req: Request, res: Response) => {
-    console.log("POST /favourite called with body:", req.body);
     const { userID, universityName } = req.body;
 
     if (!userID || !universityName) {
+        console.error("POST /favourite: Missing parameters", req.body);
         res.status(400).json({ success: false, message: "UserID and universityName are required" });
         return;
     }
 
     try {
         await addFavourite(Number(userID), universityName);
+        console.log(`Added favourite: userID=${userID}, universityName=${universityName}`);
         res.status(200).json({ success: true, message: "Added to favourites" });
-    } catch (error) {
-        console.error("Error in addFavourite:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+    } catch (error: any) {
+        if (error.message.includes("Record already exists")) {
+            res.status(409).json({ success: false, message: "Record already exists" }); // 返回冲突状态码
+        } else {
+            console.error("Error in addFavourite:", error);
+            res.status(500).json({ success: false, message: "Failed to add to favourites" });
+        }
     }
 });
 
-
-// 取消收藏
 router.delete("/favourite", async (req: Request, res: Response) => {
-    const { userID, universityName } = req.body;
+    console.log("Received DELETE request with:", req.query, req.body); // 打印收到的参数
+    const { userID, universityName } = req.query; // 从 query 中解析参数
 
     if (!userID || !universityName) {
-        res.status(400).json({ success: false, message: "UserID and universityName are required" });
-        return;
+        console.error("DELETE /favourite: Missing parameters", req.query || req.body);
+        return res.status(400).json({ success: false, message: "UserID and universityName are required" });
     }
 
     try {
-        await removeFavourite(Number(userID), universityName);
-        res.status(200).json({ success: true, message: "Removed from favourites" });
+        console.log(`Attempting to delete: userID=${userID}, universityName=${universityName}`);
+        await removeFavourite(Number(userID), universityName as string);
+        console.log(`Successfully removed: userID=${userID}, universityName=${universityName}`);
+        return res.status(200).json({ success: true, message: "Removed from favourites" });
     } catch (error) {
         console.error("Error in removeFavourite:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+        return res.status(500).json({ success: false, message: "Failed to remove from favourites" });
     }
 });
+
 
 // 检查是否已收藏
 router.get("/favourite", async (req: Request, res: Response) => {
     const { userID, universityName } = req.query;
 
-    if (!userID || !universityName) {
-        res.status(400).json({ success: false, message: "UserID and universityName are required" });
+    // 验证参数
+    if (!userID || typeof Number(userID) !== "number" || !universityName || typeof universityName !== "string") {
+        res.status(400).json({ success: false, message: "Invalid or missing parameters: userID and universityName are required." });
         return;
     }
 
     try {
         const favourite = await isFavourite(Number(userID), universityName as string);
+        console.log(`Checked favourite: userID=${userID}, universityName=${universityName}, isFavourite=${favourite}`);
         res.status(200).json({ success: true, favourite });
     } catch (error) {
         console.error("Error in isFavourite:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(500).json({ success: false, message: "Failed to check favourite status." });
     }
 });
 
