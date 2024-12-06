@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import {
     getAllUniversities,
     getUniversityByName,
+    getUniversityByPopularity,
     createUniversity,
     updateUniversity,
     deleteUniversity,
@@ -37,12 +38,24 @@ router.get("/:universityName", async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
+router.get("/popularity/:popularity", async (req: Request, res: Response) => {
+    const { popularity } = req.params;
+
+    try {
+        const universities: University[] = await getUniversityByPopularity(Number(popularity));
+        res.status(200).json({ success: true, data: universities });
+    } catch (error) {
+        console.error("Error fetching universities by popularity:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
 
 
 router.post("/", async (req: Request, res: Response) => {
     const { universityName, description, establishment, location, country, popularity } = req.body;
 
-    // // 简单验证
+    
     // if (!universityName || !description || !establishment || !location || !country || popularity === undefined) {
     //     return res.status(400).json({ success: false, message: "All fields are required" });
     // }

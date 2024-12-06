@@ -1,5 +1,6 @@
 import { User } from "../models/User";
 import { University } from "../models/University";
+import { Comment } from "../models/Comment";
 import pool from "./connection";
 import { RowDataPacket } from "mysql2";
 import { ResultSetHeader } from "mysql2/promise";
@@ -103,7 +104,7 @@ export async function searchRanking(
                 rm.universityName LIKE ?
                 ${countryFilter ? "AND u.country LIKE ?" : ""}
                 ${sourceFilter ? "AND rm.source = ?" : ""}
-                ${academicRepCondition} -- 添加 Academic Rep 筛选条件
+                ${academicRepCondition} -- 添加 Academic Rep ���选条件
         `;
 
         const queryParams = [`%${keyword}%`];
@@ -231,6 +232,21 @@ export async function getUniversityByName(universityName: string): Promise<Unive
     }
 }
 
+export async function getUniversityByPopularity(popularity: number): Promise<University[]> {
+    const sqlQuery = `
+        SELECT universityName, description, establishment, location, country, popularity
+        FROM University
+        WHERE popularity = ?;
+    `;
+    try {
+        const [rows] = await pool.query<RowDataPacket[]>(sqlQuery, [popularity]);
+        return rows as University[];
+    } catch (error) {
+        console.error("Error in getUniversityByPopularity:", error);
+        throw error;
+    }
+}
+
 /**
  * Creates a new university in the database.
  * @param university - The University object to create.
@@ -326,3 +342,68 @@ export async function deleteUniversity(universityName: string): Promise<boolean>
         throw error;
     }
 }
+
+// comment 
+export async function getAllComments(): Promise<Comment[]> {
+    const sqlQuery = `SELECT * FROM Comment;`;
+    try {
+        const [rows] = await pool.query<RowDataPacket[]>(sqlQuery);
+        return rows as Comment[];
+    } catch (error) {
+        console.error("Error in getAllComments:", error);
+        throw error;
+    }
+}
+
+export async function createComment(comment: Comment): Promise<Comment> {
+    const sqlQuery = `INSERT INTO Comment (universityName, userId, livingEnvironment, library, restaurant, content, date) VALUES (?, ?, ?, ?, ?, ?, ?);`;
+    try {
+        const [result] = await pool.query<ResultSetHeader>(sqlQuery, [comment.universityName, comment.userId, comment.livingEnvironment, comment.library, comment.restaurant, comment.content, comment.date]);
+        await updateUniversityPopularity(comment.universityName, 1);
+        return { ...comment, commentId: result.insertId };
+    } catch (error) {
+        console.error("Error in createComment:", error);
+        throw error;
+    }
+}
+
+export async function updateComment(comment: Comment): Promise<Comment | null> {
+    const sqlQuery = `UPDATE Comment SET universityName = ?, userId = ?, livingEnvironment = ?, library = ?, restaurant = ?, content = ?, date = ? WHERE commentId = ?;`;
+    try {
+        const [result] = await pool.query<ResultSetHeader>(sqlQuery, [comment.universityName, comment.userId, comment.livingEnvironment, comment.library, comment.restaurant, comment.content, comment.date, comment.commentId]);
+        return result.affectedRows > 0 ? comment : null;
+    } catch (error) {
+        console.error("Error in updateComment:", error);
+        throw error;
+    }
+}
+
+export async function deleteComment(commentId: number): Promise<boolean> {
+    const getCommentQuery = `SELECT universityName FROM Comment WHERE commentId = ?;`;
+    const deleteQuery = `DELETE FROM Comment WHERE commentId = ?;`;
+    try {
+        // Fetch the university name before deleting the comment
+        const [commentRows] = await pool.query<RowDataPacket[]>(getCommentQuery, [commentId]);
+        if (commentRows.length === 0) {
+            return false; // Comment not found
+        }
+        const universityName = commentRows[0].universityName;
+
+        const [result] = await pool.query<ResultSetHeader>(deleteQuery, [commentId]);
+        if (result.affectedRows > 0) {
+            await updateUniversityPopularity(universityName, -1);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error("Error in deleteComment:", error);
+        throw error;
+    }
+}
+
+// Function to update university popularity
+async function updateUniversityPopularity(universityName: string, change: number): Promise<void> {
+    const sqlQuery = `UPDATE University SET popularity = popularity + ? WHERE universityName = ?;`;
+    await pool.query(sqlQuery, [change, universityName]);
+}
+
