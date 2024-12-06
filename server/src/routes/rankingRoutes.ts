@@ -68,17 +68,17 @@ router.delete("/favourite", async (req: Request, res: Response) => {
 
     if (!userID || !universityName) {
         console.error("DELETE /favourite: Missing parameters", req.query || req.body);
-        return res.status(400).json({ success: false, message: "UserID and universityName are required" });
+        res.status(400).json({ success: false, message: "UserID and universityName are required" });
     }
 
     try {
         console.log(`Attempting to delete: userID=${userID}, universityName=${universityName}`);
         await removeFavourite(Number(userID), universityName as string);
         console.log(`Successfully removed: userID=${userID}, universityName=${universityName}`);
-        return res.status(200).json({ success: true, message: "Removed from favourites" });
+        res.status(200).json({ success: true, message: "Removed from favourites" });
     } catch (error) {
         console.error("Error in removeFavourite:", error);
-        return res.status(500).json({ success: false, message: "Failed to remove from favourites" });
+        res.status(500).json({ success: false, message: "Failed to remove from favourites" });
     }
 });
 
