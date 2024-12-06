@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
     searchRankings,
+    isFavouriteAPI,
     addFavouriteAPI,
     removeFavouriteAPI,
     getCountries
@@ -20,6 +21,8 @@ const RankingPage: React.FC = () => {
 
     const userID = Number(localStorage.getItem("userID")); // 假设用户已登录并存储了 userID
 
+    
+    
     // 加载国家列表
     useEffect(() => {
         const fetchCountries = async () => {
@@ -37,6 +40,19 @@ const RankingPage: React.FC = () => {
         };
         fetchCountries();
     }, []);
+
+    // const userID = Number(localStorage.getItem("userID"));
+
+    useEffect(() => {
+        if (!userID) {
+            setAlert("User not logged in. Please log in to use this feature.");
+        }
+    }, [userID]);
+
+    if (!userID) {
+        return <div>Please log in to use this feature.</div>; // 或者跳转到登录页面
+    }
+
     
     
     const handleClear = () => {
@@ -49,36 +65,53 @@ const RankingPage: React.FC = () => {
     };
     
     const handleSearch = async () => {
-        console.log("Search button clicked");
         try {
-            const response = await searchRankings(keyword, country, source, academicRepFilter); // 添加 academicRepFilter 参数
-            console.log("API Response:", JSON.stringify(response.data, null, 2));
-            const rankingData = response.data.data; // 提取嵌套的 data 数组
-            setRankings(
-                Array.isArray(rankingData)
-                    ? rankingData.map((item) => ({ ...item, isFavourite: false }))
-                    : []
-            ); // 确保是数组，并初始化收藏状态
-            setPage(1); // 重置页码为1
+            const response = await searchRankings(keyword, country, source, academicRepFilter);
+            const rankingData = response.data.data || [];
+
+            // 检查每个大学是否已被收藏
+            const updatedRankings = await Promise.all(
+                rankingData.map(async (item: any) => {
+                    const favouriteResponse = await isFavouriteAPI(userID, item.universityName);
+                    return {
+                        ...item,
+                        isFavourite: favouriteResponse.data.favourite || false,
+                        isLoading: false, // 加载状态
+                    };
+                })
+            );
+
+            setRankings(updatedRankings);
+            setPage(1); // 重置页码
         } catch (error) {
             console.error("Error searching rankings:", error);
             setAlert("Failed to fetch rankings. Please try again.");
         }
     };
-    
-    
-
-    const loadMore = () => {
-        setPage((prevPage) => prevPage + 1); // 增加页码
-    };
 
     const toggleFavourite = async (universityName: string, isFavourite: boolean) => {
+        if (!userID || !universityName) {
+            console.error("Missing userID or universityName");
+            setAlert("Invalid user or university information.");
+            return;
+        }
+    
         try {
             if (isFavourite) {
                 await removeFavouriteAPI(userID, universityName);
             } else {
-                await addFavouriteAPI(userID, universityName);
+                try {
+                    await addFavouriteAPI(userID, universityName);
+                } catch (error: any) {
+                    if (error.response?.status === 409) {
+                        console.warn("Record already exists");
+                    } else {
+                        throw error;
+                    }
+                }
             }
+    
+            // 更新本地状态
             setRankings((prevRankings) =>
                 prevRankings.map((ranking) =>
                     ranking.universityName === universityName
@@ -90,6 +123,11 @@ const RankingPage: React.FC = () => {
             console.error("Error toggling favourite:", error);
             setAlert("Failed to update favourite. Please try again.");
         }
+    };
+    
+
+    const loadMore = () => {
+        setPage((prevPage) => prevPage + 1); // 增加页码
     };
 
     const displayedRankings = rankings.slice(0, page * itemsPerPage);

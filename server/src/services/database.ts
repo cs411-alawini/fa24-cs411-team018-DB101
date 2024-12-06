@@ -122,25 +122,48 @@ export async function searchRanking(
 
 // 添加收藏
 export async function addFavourite(userID: number, universityName: string): Promise<void> {
-    const sqlQuery = `INSERT INTO Favourite (userID, universityName) VALUES (?, ?)`;
+    const sqlQueryCheck = `SELECT * FROM Favourite WHERE userID = ? AND universityName = ?`;
+    const sqlQueryInsert = `INSERT INTO Favourite (userID, universityName) VALUES (?, ?)`;
+
     try {
-        await pool.execute(sqlQuery, [userID, universityName]);
+        // 检查记录是否已存在
+        const [rows]: any = await pool.execute(sqlQueryCheck, [userID, universityName]);
+        if (rows.length > 0) {
+            console.log(`Record already exists: userID=${userID}, universityName=${universityName}`);
+            return; // 如果已存在，则不执行插入
+        }
+
+        // 插入记录
+        console.log(`Attempting to insert: userID=${userID}, universityName=${universityName}`);
+        const [result]: any = await pool.execute(sqlQueryInsert, [userID, universityName]);
+        console.log(`Insert result:`, result);
     } catch (error) {
         console.error("Error in addFavourite:", error);
         throw error;
     }
 }
 
-// 移除收藏
+
 export async function removeFavourite(userID: number, universityName: string): Promise<void> {
     const sqlQuery = `DELETE FROM Favourite WHERE userID = ? AND universityName = ?`;
+
     try {
-        await pool.execute(sqlQuery, [userID, universityName]);
+        console.log(`Executing DELETE SQL: ${sqlQuery} with params: userID=${userID}, universityName=${universityName}`);
+        const [result]: any = await pool.execute(sqlQuery, [userID, universityName]);
+        console.log("SQL execution result:", result);
+
+        if (result.affectedRows === 0) {
+            console.warn(`No record found to delete for userID=${userID}, universityName=${universityName}`);
+        } else {
+            console.log(`Successfully deleted record for userID=${userID}, universityName=${universityName}`);
+        }
     } catch (error) {
         console.error("Error in removeFavourite:", error);
         throw error;
     }
 }
+
+
 
 
 // 检查是否已收藏
