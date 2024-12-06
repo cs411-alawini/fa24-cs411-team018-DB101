@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase } from "../services/database";
+import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase, filterRankingWithTransaction } from "../services/database";
 import { log } from "console";
 
 
@@ -102,5 +102,24 @@ router.get("/favourite", async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: "Failed to check favourite status." });
     }
 });
+
+//Procedure
+router.post('/filter-ranking', async (req: Request, res: Response) => {
+    const { country, source, academicRepFilter } = req.body;
+
+    try {
+        const rankings = await filterRankingWithTransaction(
+            country || null,
+            source || null,
+            academicRepFilter || null
+        );
+
+        res.status(200).json({ success: true, data: rankings });
+    } catch (error) {
+        console.error('Error in /filter-ranking:', error);
+        res.status(500).json({ success: false, message: 'Failed to filter rankings.' });
+    }
+});
+
 
 export default router;

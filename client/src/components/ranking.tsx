@@ -4,7 +4,8 @@ import {
     isFavouriteAPI,
     addFavouriteAPI,
     removeFavouriteAPI,
-    getCountries
+    getCountries,
+    filterRankings
     
 } from "../services/rankingServices";
 
@@ -66,9 +67,9 @@ const RankingPage: React.FC = () => {
     
     const handleSearch = async () => {
         try {
-            const response = await searchRankings(keyword, country, source, academicRepFilter);
+            const response = await filterRankings(country, source, academicRepFilter);
             const rankingData = response.data.data || [];
-
+    
             // 检查每个大学是否已被收藏
             const updatedRankings = await Promise.all(
                 rankingData.map(async (item: any) => {
@@ -80,7 +81,7 @@ const RankingPage: React.FC = () => {
                     };
                 })
             );
-
+    
             setRankings(updatedRankings);
             setPage(1); // 重置页码
         } catch (error) {

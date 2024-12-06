@@ -46,3 +46,16 @@ export const getCountries = () => {
     console.log(`Request URL: ${requestURL}`); // 打印请求路径
     return axios.get(requestURL);
 };
+
+// Procedure filter rankings
+export const filterRankings = (
+    country?: string,
+    source?: string,
+    academicRepFilter?: string
+) => {
+    return axios.post(`${BASE_URL}/api/ranking/filter-ranking`, {
+        country,
+        source,
+        academicRepFilter,
+    });
+};
