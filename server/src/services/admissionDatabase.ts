@@ -9,6 +9,11 @@ export async function keywordSearch(keywords: string[]): Promise<AdmissionData[]
     return (rows as AdmissionData[][])[0];
 }
 
+export async function admissionAnalyze(GPA:number,country:string,program:string,analyzeType:number):Promise<AdmissionData[]> {
+    const [rows] = await pool.query('CALL AnalyzeAdmissionChances(?,?,?,?)', [GPA,country,program,analyzeType]);
+    return (rows as AdmissionData[][])[0];
+}
+
 export async function getAdmission(Id: number): Promise<AdmissionData> {
     const [rows] = await pool.query('SELECT * FROM AdmissionData WHERE adID = (?)', [Id]);
     const data = rows as AdmissionData[]
@@ -57,4 +62,16 @@ export async function getAdmissionDataByUser(userID:number):Promise<AdmissionDat
     const sqlQuery = `SELECT * FROM AdmissionData WHERE userID = (?)`;
     const [rows] = await pool.query(sqlQuery, [userID]);
     return rows as AdmissionData[];
+}
+
+export async function getPrograms():Promise<string[]> {
+    const sqlQuery = `SELECT DISTINCT program FROM AdmissionData`;
+    const [rows] = await pool.query(sqlQuery);
+    return rows as unknown as string[];
+}
+
+export async function getCountry():Promise<string[]> {
+    const sqlQuery = `SELECT DISTINCT country FROM University`;
+    const [rows] = await pool.query(sqlQuery);
+    return rows as unknown as string[];
 }

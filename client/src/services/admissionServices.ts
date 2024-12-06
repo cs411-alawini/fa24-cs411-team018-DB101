@@ -12,6 +12,13 @@ export interface AdmissionData{
     Notes: string,
     userID: number
 } 
+
+export interface AnalysisResult{
+    universityName: string,
+    program: string,
+    avgGPA: number,
+    totalAdmissions:number
+} 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3007";
 
 export const httpClient = axios.create({
@@ -44,4 +51,20 @@ export const deleteAdmissionData = (adID:string) :Promise<any>=>{
 
 export const updateAdmissionData = (newData: AdmissionData):Promise<any> =>{
     return httpClient.patch(`/api/admission`,newData).then(response=>response.data);
+}
+
+export const getCountries = ():Promise<any> =>{
+    return httpClient.get(`/api/admission/country`).then(response=>response.data);
+}
+
+export const getPrograms = ():Promise<any> =>{
+    return httpClient.get(`/api/admission/program`).then(response=>response.data);
+}
+
+export const analyze = (GPA:number,country:string,program:string,analyzeType:number) : Promise<any[]> =>{
+    const gpa = encodeURIComponent(GPA);
+    const c = encodeURIComponent(country);
+    const p = encodeURI(program);
+    return httpClient.get(`/api/admission/?GPA=${gpa}&country=${c}&program=${p}&analyzeType=${analyzeType}`).then(response=>response.data as unknown as AnalysisResult[]);
+
 }

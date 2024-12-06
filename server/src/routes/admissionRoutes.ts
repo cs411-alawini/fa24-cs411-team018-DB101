@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getAdmission, keywordSearch, addAdmission,deleteAdmission,updateAdmission,getAdmissionDataByUser } from "../services/admissionDatabase";
+import { getAdmission, keywordSearch, addAdmission,deleteAdmission,updateAdmission,getAdmissionDataByUser,admissionAnalyze,getCountry,getPrograms } from "../services/admissionDatabase";
 import { AdmissionData } from "../models/AdmissionData";
 const router = Router();
 
@@ -9,6 +9,36 @@ router.get('/keyword',async (req: Request, res: Response) => {
         const keywordString = req.query.keywords as string;
         const keywords = keywordString.split(' ');
         const result = await keywordSearch(keywords);
+        res.status(200).json(result);
+        // console.log('keyword search');
+        // console.log(result);
+    } catch (error) {
+        console.error('Error fetching admission data:', error);
+        res.status(500).json({
+            success: false,
+            message: "server error"
+        });
+    }
+});
+
+router.get('/country',async (req: Request, res: Response) => {
+    try {
+        const result = await getCountry();
+        res.status(200).json(result);
+        // console.log('keyword search');
+        // console.log(result);
+    } catch (error) {
+        console.error('Error fetching admission data:', error);
+        res.status(500).json({
+            success: false,
+            message: "server error"
+        });
+    }
+});
+
+router.get('/program',async (req: Request, res: Response) => {
+    try {
+        const result = await getPrograms();
         res.status(200).json(result);
         // console.log('keyword search');
         // console.log(result);
@@ -45,6 +75,26 @@ router.get('/user/:userID',async (req: Request, res: Response) => {
     try {
         const userID = req.params.userID;
         const result = await getAdmissionDataByUser(parseInt(userID));
+        // console.log(result);
+        res.status(200).json(result);
+        // console.log('getInfo');
+        // console.log(result);
+    } catch (error) {
+        console.error('Error fetching admission data:', error);
+        res.status(500).json({
+            success: false,
+            message: "server error"
+        });
+    }
+});
+
+router.get('/',async (req: Request, res: Response) => {
+    try {
+        const GPA = parseFloat(req.query.GPA as string);
+        const country = req.query.country as string;
+        const programName = req.query.program as string;
+        const type = parseInt(req.query.analyzeType as string);
+        const result = await admissionAnalyze(GPA,country,programName,type);
         // console.log(result);
         res.status(200).json(result);
         // console.log('getInfo');

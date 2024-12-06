@@ -61,6 +61,18 @@ const AdmissionDetail: React.FC<DetailProps> = ({ isOpen, onClose, adID, onSucce
         setIsEditing(true);
     };
 
+    const formatDate = (dateStr: string) => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const timestamp = Date.UTC(year, month - 1, day, 12, 0, 0);
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            timeZone: 'America/Chicago'
+        });
+    };
+
     const handleSave = async () => {
         if (!editedData) return;
 
@@ -156,7 +168,7 @@ const AdmissionDetail: React.FC<DetailProps> = ({ isOpen, onClose, adID, onSucce
                                                 value={editedData?.notificationTime || ''}
                                                 onChange={handleChange}
                                                 placeholder="YYYY-MM-DD"
-            
+
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                             />
                                         </div>
@@ -256,7 +268,7 @@ const AdmissionDetail: React.FC<DetailProps> = ({ isOpen, onClose, adID, onSucce
                                         </div>
                                         <div>
                                             <label className="font-medium">Notification Date:</label>
-                                            <p>{new Date(data.notificationTime).toLocaleDateString()}</p>
+                                            <p>{formatDate(data.notificationTime)}</p>
                                         </div>
                                         <div>
                                             <label className="font-medium">GPA:</label>
