@@ -57,6 +57,20 @@ export const addRankingData = async (rankingData: any) => {
         throw error; 
     }
 };
+// 删除排名数据
+export const deleteRankingData = async (universityName: string, source: string) => {
+    const response = await axios.delete(`${BASE_URL}/api/ranking/delete`, {
+        data: { universityName, source },
+    });
+    return response.data;
+};
+
+// 更新排名数据
+export const updateRankingData = async (rankingData: any) => {
+    const response = await axios.put(`${BASE_URL}/api/ranking/update`, rankingData);
+    return response.data;
+};
+
 
 
 // Procedure filter rankings

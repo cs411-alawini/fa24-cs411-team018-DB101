@@ -6,6 +6,8 @@ import {
     removeFavouriteAPI,
     getCountries,
     addRankingData,
+    deleteRankingData,
+    updateRankingData,
     filterRankings
     
 } from "../services/rankingServices";
@@ -25,6 +27,9 @@ const RankingPage: React.FC = () => {
     const [showAddModal, setShowAddModal] = useState(false);
     const [alertMessage, setAlertMessage] = useState<string | null>(null); // 控制弹窗的消息
     const [showAlert, setShowAlert] = useState(false); // 是否显示弹窗
+    const [showEditModal, setShowEditModal] = useState(false); // 控制编辑弹窗
+    const [editingRanking, setEditingRanking] = useState<any>(null); // 当前编辑的数据
+
     const [newRanking, setNewRanking] = useState({
         universityName: "",
         source: "QS",
@@ -68,6 +73,10 @@ const RankingPage: React.FC = () => {
     }
 
     
+    const handleEdit = (ranking: any) => {
+        setEditingRanking(ranking); // 设置要编辑的数据
+        setShowEditModal(true); // 打开编辑弹窗
+    };
     
     const handleClear = () => {
         // 清空所有筛选条件
@@ -175,6 +184,51 @@ const RankingPage: React.FC = () => {
     const loadMore = () => {
         setPage((prevPage) => prevPage + 1); // 增加页码
     };
+    const handleDelete = async (universityName: string, source: string) => {
+        if (window.confirm("Are you sure you want to delete this ranking?")) {
+            try {
+                await deleteRankingData(universityName, source); // 调用后端 API
+                setAlertMessage("Ranking deleted successfully!");
+                setShowAlert(true);
+                handleSearch(); // 重新加载数据
+            } catch (error) {
+                console.error("Error deleting ranking:", error);
+                setAlertMessage("Failed to delete ranking.");
+                setShowAlert(true);
+            }
+        }
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await updateRankingData(editingRanking); // 调用后端 API
+            setShowEditModal(false); // 关闭弹窗
+            setAlertMessage("Ranking updated successfully!");
+            setShowAlert(true);
+            handleSearch(); // 刷新表格数据
+        } catch (error) {
+            console.error("Error updating ranking data:", error);
+            setAlertMessage("Failed to update ranking.");
+            setShowAlert(true);
+        }
+    };
+    
+    const handleEditRanking = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await updateRankingData(editingRanking); // 调用后端 API 更新数据
+            setShowEditModal(false); // 关闭弹框
+            handleSearch(); // 刷新表格数据
+        } catch (error) {
+            setShowEditModal(false); // 关闭弹框
+            console.error("Error updating ranking data:", error);
+            setAlertMessage("Failed to update ranking data.");
+            setShowAlert(true); // 显示错误弹窗
+        }
+    };
+    
+    
 
     const displayedRankings = rankings.slice(0, page * itemsPerPage);
 
@@ -292,7 +346,9 @@ const RankingPage: React.FC = () => {
                     <th className="border border-gray-300 px-4 py-2">International Score</th>
                     <th className="border border-gray-300 px-4 py-2">Location</th>
                     <th className="border border-gray-300 px-4 py-2">Country</th>
-                    <th className="border border-gray-300 px-4 py-2">Favourite</th>
+                    <th className="border border-gray-300 px-4 py-2">
+                        {isAdmin ? "Action" : "Favourite"}
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -308,17 +364,33 @@ const RankingPage: React.FC = () => {
                         <td className="border border-gray-300 px-4 py-2">{ranking.location}</td>
                         <td className="border border-gray-300 px-4 py-2">{ranking.country}</td>
                         <td className="border border-gray-300 px-4 py-2 text-center">
-                            <button
-                                onClick={() =>
-                                    toggleFavourite(
-                                        ranking.universityName,
-                                        ranking.isFavourite
-                                    )
-                                }
-                            >
-                                {ranking.isFavourite ? "💖" : "🤍"}
-                            </button>
+                        <td className="border border-gray-300 px-4 py-2 text-center">
+                            {isAdmin ? (
+                                <div className="flex gap-2 justify-center">
+                                    <button
+                                        onClick={() => handleEdit(ranking)}
+                                        className="bg-yellow-500 text-white py-1 px-2 rounded hover:bg-yellow-600"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(ranking.universityName, ranking.source)}
+                                        className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => toggleFavourite(ranking.universityName, ranking.isFavourite)}
+                                >
+                                    {ranking.isFavourite ? "💖" : "🤍"}
+                                </button>
+                            )}
                         </td>
+
+                    </td>
+
                     </tr>
                 ))}
             </tbody>
@@ -332,6 +404,75 @@ const RankingPage: React.FC = () => {
             {displayedRankings.length < rankings.length && (
                 <button onClick={loadMore}>Load More</button>
             )}
+            {showEditModal && (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-bold mb-4">Edit Ranking Data</h2>
+            <form onSubmit={handleEditRanking}>
+                <div className="mb-4">
+                    <label className="block font-medium mb-1">University Name</label>
+                    <input
+                        type="text"
+                        value={editingRanking.universityName}
+                        readOnly
+                        className="w-full p-2 border rounded bg-gray-100"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block font-medium mb-1">Source</label>
+                    <select
+                        value={editingRanking.source}
+                        onChange={(e) =>
+                            setEditingRanking({ ...editingRanking, source: e.target.value })
+                        }
+                        className="w-full p-2 border rounded"
+                    >
+                        <option value="QS">QS</option>
+                        <option value="Times">Times</option>
+                    </select>
+                </div>
+                {[
+                    { label: "Academic Rep", key: "academicRep" },
+                    { label: "Employer Rep", key: "employerRep" },
+                    { label: "Faculty/Student", key: "facultyStudentScore" },
+                    { label: "Citation/Faculty", key: "citationPerFaculty" },
+                    { label: "International Score", key: "internationalScore" },
+                    { label: "Location", key: "location" },
+                    { label: "Country", key: "country" },
+                ].map((field) => (
+                    <div className="mb-4" key={field.key}>
+                        <label className="block font-medium mb-1">{field.label}</label>
+                        <input
+                            type="text"
+                            value={editingRanking[field.key]}
+                            onChange={(e) =>
+                                setEditingRanking({ ...editingRanking, [field.key]: e.target.value })
+                            }
+                            className="w-full p-2 border rounded"
+                        />
+                    </div>
+                ))}
+                <div className="flex justify-end">
+                    <button
+                        type="button"
+                        onClick={() => setShowEditModal(false)}
+                        className="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                    >
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+)}
+
+
             {showAddModal && (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
         <div className="bg-white p-6 rounded shadow-md w-1/2">

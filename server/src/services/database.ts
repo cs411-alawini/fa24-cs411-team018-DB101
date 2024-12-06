@@ -474,3 +474,69 @@ export async function addRankingToDatabase(rankingData: {
         throw error;
     }
 }
+
+// 删除排名数据
+export async function deleteRankingFromDatabase(
+    universityName: string,
+    source: string
+): Promise<void> {
+    try {
+        const deleteQuery = `
+            DELETE FROM RankingMetric
+            WHERE universityName = ? AND source = ?;
+        `;
+        const [result]: any = await pool.query(deleteQuery, [universityName, source]);
+
+        if (result.affectedRows === 0) {
+            throw new Error(`No ranking data found for universityName=${universityName} and source=${source}.`);
+        }
+    } catch (error) {
+        console.error("Error in deleteRankingFromDatabase:", error);
+        throw error;
+    }
+}
+
+
+// 更新排名数据
+export async function updateRankingInDatabase(rankingData: any): Promise<void> {
+    const {
+        universityName,
+        source,
+        academicRep,
+        employerRep,
+        facultyStudentScore,
+        citationPerFaculty,
+        internationalScore,
+    } = rankingData;
+
+    try {
+        const updateQuery = `
+            UPDATE RankingMetric
+            SET 
+                academicRep = ?,
+                employerRep = ?,
+                facultyStudentScore = ?,
+                citationPerFaculty = ?,
+                internationalScore = ?
+            WHERE 
+                universityName = ? AND source = ?;
+        `;
+
+        const [result]: any = await pool.query(updateQuery, [
+            academicRep,
+            employerRep,
+            facultyStudentScore,
+            citationPerFaculty,
+            internationalScore,
+            universityName,
+            source,
+        ]);
+
+        if (result.affectedRows === 0) {
+            throw new Error(`No ranking data found to update for universityName=${universityName} and source=${source}.`);
+        }
+    } catch (error) {
+        console.error("Error in updateRankingInDatabase:", error);
+        throw error;
+    }
+}
