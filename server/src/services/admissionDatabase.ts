@@ -41,7 +41,7 @@ export async function deleteAdmission(Id: number): Promise<boolean> {
 
 export async function updateAdmission(data: AdmissionData): Promise<boolean> {
     const sqlQuery = `UPDATE AdmissionData SET universityName = ?,program = ?,admissionSeason = ?,notificationTime = ?,GPA = ?,languageProficiencyType = ?,
-    languageScore = ?, GRE = ?, Notes = ?,userID = ?WHERE adID = ?`;
+    languageScore = ?, GRE = ?, Notes = ?,userID = ? WHERE adID = ?`;
     try {
         await pool.query(sqlQuery, [data.universityName, data.program, data.admissionSeason, data.notificationTime, data.GPA, data.languageProficiencyType, 
             data.languageScore, data.GRE, data.Notes, data.userID,data.adID]);
