@@ -58,3 +58,16 @@ export const addRankingData = async (rankingData: any) => {
     }
 };
 
+
+// Procedure filter rankings
+export const filterRankings = (
+    country?: string,
+    source?: string,
+    academicRepFilter?: string
+) => {
+    return axios.post(`${BASE_URL}/api/ranking/filter-ranking`, {
+        country,
+        source,
+        academicRepFilter,
+    });
+};

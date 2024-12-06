@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase,addRankingToDatabase } from "../services/database";
+import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase, filterRankingWithTransaction,addRankingToDatabase } from "../services/database";
 import { log } from "console";
 
 
@@ -130,6 +130,24 @@ router.post("/add", async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Error in /add:", error);
         res.status(500).json({ success: false, message: "Failed to add ranking data." });
+    }
+}); // 这里补充了闭合的 `}`
+
+//Procedure
+router.post('/filter-ranking', async (req: Request, res: Response) => {
+    const { country, source, academicRepFilter } = req.body;
+
+    try {
+        const rankings = await filterRankingWithTransaction(
+            country || null,
+            source || null,
+            academicRepFilter || null
+        );
+
+        res.status(200).json({ success: true, data: rankings });
+    } catch (error) {
+        console.error('Error in /filter-ranking:', error);
+        res.status(500).json({ success: false, message: 'Failed to filter rankings.' });
     }
 });
 

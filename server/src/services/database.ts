@@ -180,6 +180,28 @@ export async function isFavourite(userID: number, universityName: string): Promi
     }
 }
 
+// Procedure filterRankingWithTransaction
+export async function filterRankingWithTransaction(
+    country: string | null,
+    source: string | null,
+    academicRepFilter: string | null
+): Promise<any[]> {
+    try {
+        console.log("Calling FilterUniversityRankings with:", { country, source, academicRepFilter });
+
+        const [results]: any = await pool.query(
+            `CALL FilterUniversityRankings(?, ?, ?)`,
+            [country, source, academicRepFilter]
+        );
+
+        console.log("FilterUniversityRankings executed successfully. Results:", results[0]);
+        return results[0];
+    } catch (error) {
+        console.error("Error in filterRankingWithTransaction:", error);
+        throw error;
+    }
+}
+
 // 查询国家列表的函数
 export async function getCountriesFromDatabase() {
     try {
