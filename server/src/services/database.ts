@@ -4,6 +4,7 @@ import { Comment } from "../models/Comment";
 import pool from "./connection";
 import { RowDataPacket } from "mysql2";
 import { ResultSetHeader } from "mysql2/promise";
+import { QueryResult, FieldPacket } from "mysql2/promise";
 
 export async function getUserByID(userID: number): Promise<User> {
     const [rows] = await pool.query(`SELECT * FROM User u WHERE u.userID LIKE '${userID}';`);
@@ -401,9 +402,53 @@ export async function deleteComment(commentId: number): Promise<boolean> {
     }
 }
 
+
+
 // Function to update university popularity
 async function updateUniversityPopularity(universityName: string, change: number): Promise<void> {
     const sqlQuery = `UPDATE University SET popularity = popularity + ? WHERE universityName = ?;`;
     await pool.query(sqlQuery, [change, universityName]);
 }
 
+export async function addRankingToDatabase(rankingData: {
+    universityName: string;
+    source: string;
+    academicRep: number;
+    employerRep: number;
+    facultyStudentScore: number;
+    citationPerFaculty: number;
+    internationalScore: number;
+}): Promise<void> {
+    try {
+        // 插入排名数据到 RankingMetric 表
+        const insertRankingQuery = `
+            INSERT INTO RankingMetric (
+                universityName,
+                source,
+                academicRep,
+                employerRep,
+                facultyStudentScore,
+                citationPerFaculty,
+                internationalScore
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+        const [result]: [ResultSetHeader, FieldPacket[]] = await pool.query(insertRankingQuery, [
+            rankingData.universityName,
+            rankingData.source,
+            rankingData.academicRep,
+            rankingData.employerRep,
+            rankingData.facultyStudentScore,
+            rankingData.citationPerFaculty,
+            rankingData.internationalScore,
+        ]);
+
+        if (result.affectedRows === 0) {
+            throw new Error(`Failed to add ranking data for '${rankingData.universityName}'.`);
+        }
+
+        console.log(`Ranking data added successfully for '${rankingData.universityName}' (${rankingData.source}).`);
+    } catch (error) {
+        console.error("Error in addRankingToDatabase:", error);
+        throw error;
+    }
+}

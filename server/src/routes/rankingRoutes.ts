@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase } from "../services/database";
+import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase,addRankingToDatabase } from "../services/database";
 import { log } from "console";
 
 
@@ -102,5 +102,37 @@ router.get("/favourite", async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: "Failed to check favourite status." });
     }
 });
+
+router.post("/add", async (req: Request, res: Response) => {
+    const {
+        universityName,
+        source,
+        academicRep,
+        employerRep,
+        facultyStudentScore,
+        citationPerFaculty,
+        internationalScore,
+    } = req.body;
+
+    try {
+        // 调用 addRankingToDatabase 函数
+        await addRankingToDatabase({
+            universityName,
+            source,
+            academicRep: Number(academicRep),
+            employerRep: Number(employerRep),
+            facultyStudentScore: Number(facultyStudentScore),
+            citationPerFaculty: Number(citationPerFaculty),
+            internationalScore: Number(internationalScore),
+        });
+
+        res.status(200).json({ success: true, message: "Ranking data added successfully." });
+    } catch (error) {
+        console.error("Error in /add:", error);
+        res.status(500).json({ success: false, message: "Failed to add ranking data." });
+    }
+});
+
+
 
 export default router;

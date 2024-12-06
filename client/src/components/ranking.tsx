@@ -4,7 +4,8 @@ import {
     isFavouriteAPI,
     addFavouriteAPI,
     removeFavouriteAPI,
-    getCountries
+    getCountries,
+    addRankingData
     
 } from "../services/rankingServices";
 
@@ -18,11 +19,23 @@ const RankingPage: React.FC = () => {
     const [alert, setAlert] = useState<string | null>(null); // 提示信息
     const [page, setPage] = useState<number>(1); // 当前页数
     const itemsPerPage = 100; // 每页显示的条目数
-
     const userID = Number(localStorage.getItem("userID")); // 假设用户已登录并存储了 userID
-
-    
-    
+    const isAdmin = userID === 511; // 判断是否是管理员
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [alertMessage, setAlertMessage] = useState<string | null>(null); // 控制弹窗的消息
+    const [showAlert, setShowAlert] = useState(false); // 是否显示弹窗
+    const [newRanking, setNewRanking] = useState({
+        universityName: "",
+        source: "QS",
+        academicRep: "",
+        employerRep: "",
+        facultyStudentScore: "",
+        citationPerFaculty: "",
+        internationalScore: "",
+        location: "",
+        country: "",
+    });
+     
     // 加载国家列表
     useEffect(() => {
         const fetchCountries = async () => {
@@ -63,7 +76,39 @@ const RankingPage: React.FC = () => {
         setAcademicRepFilter("");
         setRankings([]); // 清空当前显示的结果
     };
+
+    const handleAddRanking = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            console.log("TBH1");
+            await addRankingData(newRanking); // 调用后端 API 提交数据
+            console.log("TBH2");
+            setShowAddModal(false); // 关闭弹框
+            setNewRanking({
+                universityName: "",
+                source: "QS",
+                academicRep: "",
+                employerRep: "",
+                facultyStudentScore: "",
+                citationPerFaculty: "",
+                internationalScore: "",
+                location: "",
+                country: "",
+            }); // 重置表单
+            handleSearch(); // 刷新表格数据
+        } catch (error) {
+            setShowAddModal(false); 
+            console.log("89898989");
+            const errorMessage = "University does not exist. Please go to add the university before adding rankings.";
+            setAlertMessage(errorMessage);
+            setShowAlert(true); // 显示弹窗
+        }
+    };
     
+    const handleCloseAlert = () => {
+        setShowAlert(false);
+        setAlertMessage(null);
+    };
     const handleSearch = async () => {
         try {
             const response = await searchRankings(keyword, country, source, academicRepFilter);
@@ -133,9 +178,23 @@ const RankingPage: React.FC = () => {
     const displayedRankings = rankings.slice(0, page * itemsPerPage);
 
     return (
+        
         <div className="p-6">
             <h2 className="text-2xl font-bold mb-4">University Rankings</h2>
-
+            {/* 弹窗组件 */}
+            {showAlert && (
+                <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-6 rounded shadow-md">
+                        <p>{alertMessage}</p>
+                        <button
+                            onClick={handleCloseAlert}
+                            className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
             {alert && (
                 <div className="mb-4 p-2 bg-yellow-100 text-yellow-700 rounded">
                     {alert}
@@ -206,6 +265,15 @@ const RankingPage: React.FC = () => {
                 >
                     Clear
                 </button>
+                {isAdmin && (
+                <button
+                    onClick={() => setShowAddModal(true)}
+                    className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600"
+                >
+                    Add Ranking Data
+                </button>
+    )}
+                
             </div>
 
 
@@ -263,7 +331,162 @@ const RankingPage: React.FC = () => {
             {displayedRankings.length < rankings.length && (
                 <button onClick={loadMore}>Load More</button>
             )}
+            {showAddModal && (
+    <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-6 rounded shadow-md w-1/2">
+            <h2 className="text-xl font-bold mb-4">Add Ranking Data</h2>
+            <form onSubmit={handleAddRanking}>
+                {/* University Name */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">University Name:</label>
+                    <input
+                        type="text"
+                        value={newRanking.universityName}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, universityName: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    />
+                </div>
+
+                {/* Source */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Source:</label>
+                    <select
+                        value={newRanking.source}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, source: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    >
+                        <option value="QS">QS</option>
+                        <option value="Times">Times</option>
+                    </select>
+                </div>
+
+                {/* Academic Rep */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Academic Rep:</label>
+                    <input
+                        type="number"
+                        value={newRanking.academicRep}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, academicRep: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    />
+                </div>
+
+                {/* Employer Rep */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Employer Rep:</label>
+                    <input
+                        type="number"
+                        value={newRanking.employerRep}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, employerRep: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    />
+                </div>
+
+                {/* Faculty/Student */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Faculty/Student:</label>
+                    <input
+                        type="number"
+                        value={newRanking.facultyStudentScore}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, facultyStudentScore: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    />
+                </div>
+
+                {/* Citation/Faculty */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Citation/Faculty:</label>
+                    <input
+                        type="number"
+                        value={newRanking.citationPerFaculty}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, citationPerFaculty: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    />
+                </div>
+
+                {/* International Score */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">International Score:</label>
+                    <input
+                        type="number"
+                        value={newRanking.internationalScore}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, internationalScore: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    />
+                </div>
+
+                {/* Location */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Location:</label>
+                    <input
+                        type="text"
+                        value={newRanking.location}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, location: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    />
+                </div>
+
+                {/* Country */}
+                <div className="mb-4">
+                    <label className="block text-gray-700">Country:</label>
+                    <input
+                        type="text"
+                        value={newRanking.country}
+                        onChange={(e) =>
+                            setNewRanking({ ...newRanking, country: e.target.value })
+                        }
+                        className="p-2 border rounded w-full"
+                        required
+                    />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-4">
+                    <button
+                        type="submit"
+                        className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                    >
+                        Submit
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowAddModal(false)}
+                        className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </form>
         </div>
+    </div>
+)}
+
+        </div>
+        
     );
 };
 

@@ -46,3 +46,15 @@ export const getCountries = () => {
     console.log(`Request URL: ${requestURL}`); // 打印请求路径
     return axios.get(requestURL);
 };
+//添加排名数据
+export const addRankingData = async (rankingData: any) => {
+    try {
+        const response = await axios.post(`${BASE_URL}/api/ranking/add`, rankingData);
+        console.log("Response from server:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error in addRankingData:", error);
+        throw error; 
+    }
+};
+
