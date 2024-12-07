@@ -65,13 +65,13 @@ export async function getAdmissionDataByUser(userID:number):Promise<AdmissionDat
 }
 
 export async function getPrograms():Promise<string[]> {
-    const sqlQuery = `SELECT DISTINCT program FROM AdmissionData`;
+    const sqlQuery = `SELECT DISTINCT program FROM AdmissionData ORDER BY program ASC`;
     const [rows] = await pool.query(sqlQuery);
     return rows as unknown as string[];
 }
 
 export async function getCountry():Promise<string[]> {
-    const sqlQuery = `SELECT DISTINCT country FROM University`;
+    const sqlQuery = `SELECT DISTINCT country FROM University ORDER BY country ASC`;
     const [rows] = await pool.query(sqlQuery);
     return rows as unknown as string[];
 }
