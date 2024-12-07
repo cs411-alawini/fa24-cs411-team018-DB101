@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase, filterRankingWithTransaction,addRankingToDatabase } from "../services/database";
+import { searchRanking, addFavourite, removeFavourite, isFavourite,getCountriesFromDatabase, filterRankingWithTransaction,addRankingToDatabase,updateRankingInDatabase,deleteRankingFromDatabase } from "../services/database";
 import { log } from "console";
 
 
@@ -131,7 +131,33 @@ router.post("/add", async (req: Request, res: Response) => {
         console.error("Error in /add:", error);
         res.status(500).json({ success: false, message: "Failed to add ranking data." });
     }
-}); // 这里补充了闭合的 `}`
+}); 
+
+// 删除排名数据
+router.delete("/delete", async (req: Request, res: Response) => {
+    const { universityName, source } = req.body;
+
+    try {
+        console.log("+++++*****");
+        await deleteRankingFromDatabase(universityName, source);
+        res.status(200).json({ success: true, message: "Ranking deleted successfully." });
+    } catch (error) {
+        console.error("Error in /delete:", error);
+        res.status(500).json({ success: false, message: "Failed to delete ranking." });
+    }
+});
+
+// 更新排名数据
+router.put("/update", async (req: Request, res: Response) => {
+    try {
+        await updateRankingInDatabase(req.body);
+        res.status(200).json({ success: true, message: "Ranking updated successfully." });
+    } catch (error) {
+        console.error("Error in /update:", error);
+        res.status(500).json({ success: false, message: "Failed to update ranking." });
+    }
+});
+
 
 //Procedure
 router.post('/filter-ranking', async (req: Request, res: Response) => {
