@@ -99,12 +99,21 @@ const AdmissionDataPage = () => {
     const formatLanguageScore = (type: string, score: number) => {
         return `${type}: ${score}`;
     };
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
+    const formatDate = (dateStr: string) => {
+        // const date = new Date(dateString);
+        // return date.toLocaleDateString('en-US', {
+        //     year: 'numeric',
+        //     month: '2-digit',
+        //     day: '2-digit'
+        dateStr = dateStr.split('T')[0];
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const timestamp = Date.UTC(year, month - 1, day, 12, 0, 0);
+        const date = new Date(timestamp);
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: '2-digit',
-            day: '2-digit'
+            day: '2-digit',
+            timeZone: 'America/Chicago'
         });
     };
 
