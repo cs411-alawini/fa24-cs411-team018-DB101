@@ -71,17 +71,18 @@ export const updateRankingData = async (rankingData: any) => {
     return response.data;
 };
 
-
-
 // Procedure filter rankings
 export const filterRankings = (
+    keyword?: string,
     country?: string,
     source?: string,
     academicRepFilter?: string
 ) => {
     return axios.post(`${BASE_URL}/api/ranking/filter-ranking`, {
+        keyword,
         country,
         source,
         academicRepFilter,
     });
 };
+

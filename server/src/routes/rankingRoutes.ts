@@ -45,7 +45,6 @@ router.post("/favourite", async (req: Request, res: Response) => {
     if (!userID || !universityName) {
         console.error("POST /favourite: Missing parameters", req.body);
         res.status(400).json({ success: false, message: "UserID and universityName are required" });
-        return;
     }
 
     try {
@@ -90,7 +89,6 @@ router.get("/favourite", async (req: Request, res: Response) => {
     // 验证参数
     if (!userID || typeof Number(userID) !== "number" || !universityName || typeof universityName !== "string") {
         res.status(400).json({ success: false, message: "Invalid or missing parameters: userID and universityName are required." });
-        return;
     }
 
     try {
@@ -161,10 +159,11 @@ router.put("/update", async (req: Request, res: Response) => {
 
 //Procedure
 router.post('/filter-ranking', async (req: Request, res: Response) => {
-    const { country, source, academicRepFilter } = req.body;
+    const { keyword, country, source, academicRepFilter } = req.body;
 
     try {
         const rankings = await filterRankingWithTransaction(
+            keyword || null,
             country || null,
             source || null,
             academicRepFilter || null
@@ -176,7 +175,6 @@ router.post('/filter-ranking', async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: 'Failed to filter rankings.' });
     }
 });
-
 
 
 export default router;

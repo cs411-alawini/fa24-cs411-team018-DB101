@@ -11,8 +11,10 @@ import {
     filterRankings
     
 } from "../services/rankingServices";
+import { useNavigate } from "react-router-dom";
 
 const RankingPage: React.FC = () => {
+    const navigate = useNavigate();
     const [keyword, setKeyword] = useState<string>(""); // 搜索关键词
     const [source, setSource] = useState<string>(""); // 来源筛选
     const [country, setCountry] = useState<string>(""); // 国家筛选
@@ -121,7 +123,7 @@ const RankingPage: React.FC = () => {
     };
     const handleSearch = async () => {
         try {
-            const response = await filterRankings(country, source, academicRepFilter);
+            const response = await filterRankings(keyword, country, source, academicRepFilter);
             const rankingData = response.data.data || [];
     
             // 检查每个大学是否已被收藏
@@ -235,6 +237,13 @@ const RankingPage: React.FC = () => {
     return (
         
         <div className="p-6">
+            {/* 返回按钮 */}
+            <button
+                onClick={() => navigate('/home')}
+                className="absolute top-2 left-4 text-blue-500 hover:text-blue-600 font-bold flex items-center"
+            >
+                ← Back to Home
+            </button>
             <h2 className="text-2xl font-bold mb-4">University Rankings</h2>
             {/* 弹窗组件 */}
             {showAlert && (
