@@ -136,11 +136,11 @@ router.delete("/:userID", async (req: Request, res: Response) => {
     }
 });
 
-router.get("/favourites/:userID", async (req, res) => {
+router.get("/favourites/:userID", async (req: Request, res: Response) => {
     const userID = parseInt(req.params.userID, 10);
 
     if (isNaN(userID)) {
-        return res.status(400).json({ success: false, message: "Invalid userID" });
+        res.status(400).json({ success: false, message: "Invalid userID" });
     }
 
     try {
