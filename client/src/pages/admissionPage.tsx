@@ -5,6 +5,7 @@ import { AdmissionData, getDataByUser } from '../services/admissionServices';
 import { useNavigate } from 'react-router-dom';
 import AdmissionForm from '../components/admissionForm';
 import AdmissionDetail from '../components/admissionDetail';
+import AnalyzeForm from '../components/admissionAnalyzeForm';
 
 const AdmissionDataPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +17,7 @@ const AdmissionDataPage = () => {
     const [displayContent, setDisplayContent] = useState('');
     const [selectedAdID, setSelectedAdID] = useState<string | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [isAnalyzeOpen, setIsAnalyzeOpen] = useState(false);
     const itemsPerPage = 7;
 
     const totalPages = Math.ceil((data?.length || 0) / itemsPerPage);
@@ -81,7 +83,7 @@ const AdmissionDataPage = () => {
         } finally {
             setLoading(false);
         }
-    } 
+    }
 
     useEffect(() => {
         fetchData();
@@ -123,7 +125,7 @@ const AdmissionDataPage = () => {
     };
     const backHome = useBackHome();
 
-    const onSuccess = (content:string) => {
+    const onSuccess = (content: string) => {
         fetchData('%');
         setShowSuccess(true);
         setDisplayContent(content);
@@ -139,11 +141,16 @@ const AdmissionDataPage = () => {
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
-            {isOpen && <AdmissionForm isOpen={isOpen} onClose={() => { setIsOpen(false) }} onSuccess={()=>{onSuccess("Succefully uploaded")}} />}
+            {isOpen && <AdmissionForm isOpen={isOpen} onClose={() => { setIsOpen(false) }} onSuccess={() => { onSuccess("Succefully uploaded") }} />}
             {showSuccess && (
                 <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transition-opacity">
                     {displayContent}
                 </div>
+            )}
+            {isAnalyzeOpen && (
+                <AnalyzeForm
+                    onClose={() => setIsAnalyzeOpen(false)}
+                />
             )}
             {selectedAdID && (
                 <AdmissionDetail
@@ -195,6 +202,14 @@ const AdmissionDataPage = () => {
                     >
                         <Plus className="h-4 w-4" />
                         Post your admission data
+                    </button>
+                    <button
+                        type="button"
+                        className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                        onClick={() => setIsAnalyzeOpen(true)}
+                    >
+                        <Search className="h-4 w-4" />
+                        Program recommendation
                     </button>
                 </form>
             </div>

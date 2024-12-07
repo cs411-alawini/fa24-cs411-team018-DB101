@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react';
-import { getCountries,getPrograms, analyze,AnalysisResult} from '../services/admissionServices';
+import { getCountries, getPrograms, analyze, AnalysisResult } from '../services/admissionServices';
 
 interface AnalyzeFormProps {
     onClose?: () => void;
+}
+
+interface CountryData {
+    country: string | null;
+}
+
+interface ProgramData {
+    program: string;
 }
 
 const AnalyzeForm: React.FC<AnalyzeFormProps> = ({ onClose }) => {
@@ -27,12 +35,17 @@ const AnalyzeForm: React.FC<AnalyzeFormProps> = ({ onClose }) => {
     const fetchInitialData = async () => {
         setLoading(true);
         try {
-            const [countriesData, programsData] = await Promise.all([
-                getCountries(),
-                getPrograms()
-            ]);
-            setCountries(countriesData);
-            setPrograms(programsData);
+            const countriesResponse = await getCountries();
+            const programsResponse = await getPrograms();
+            const countriesData = countriesResponse as CountryData[];
+            const programsData = programsResponse as ProgramData[];
+            const processedCountries = countriesData
+                .filter((item): item is { country: string } => item.country !== null)
+                .map(item => item.country);
+            const processedPrograms = programsData.map(item => item.program);
+
+            setCountries(processedCountries);
+            setPrograms(processedPrograms);
         } catch (err) {
             setError('Failed to fetch initial data');
         } finally {
@@ -51,7 +64,7 @@ const AnalyzeForm: React.FC<AnalyzeFormProps> = ({ onClose }) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const gpaValue = parseFloat(formData.gpa);
-        
+
         if (isNaN(gpaValue) || gpaValue < 0 || gpaValue > 4.0) {
             setError('Please enter a valid GPA between 0 and 4.0');
             return;
@@ -66,7 +79,21 @@ const AnalyzeForm: React.FC<AnalyzeFormProps> = ({ onClose }) => {
         setError('');
 
         try {
-            const response = await analyze(parseFloat(formData.gpa),formData.country,formData.program,parseInt(formData.analyzeType));
+            let analyzeTypeNum: number;
+            switch (formData.analyzeType) {
+                case 'safe':
+                    analyzeTypeNum = 1;
+                    break;
+                case 'target':
+                    analyzeTypeNum = 2;
+                    break;
+                case 'reach':
+                    analyzeTypeNum = 3;
+                    break;
+                default:
+                    analyzeTypeNum = 2;
+            }
+            const response = await analyze(parseFloat(formData.gpa), formData.country, formData.program, analyzeTypeNum);
             setResults(response);
             setShowResults(true);
         } catch (err) {
@@ -182,8 +209,8 @@ const AnalyzeForm: React.FC<AnalyzeFormProps> = ({ onClose }) => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">Select a country</option>
-                                    {countries.map(country => (
-                                        <option key={country} value={country}>
+                                    {countries.map((country, index) => (
+                                        <option key={`country-${index}-${country}`} value={country}>
                                             {country}
                                         </option>
                                     ))}
@@ -202,8 +229,8 @@ const AnalyzeForm: React.FC<AnalyzeFormProps> = ({ onClose }) => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="">Select a program</option>
-                                    {programs.map(program => (
-                                        <option key={program} value={program}>
+                                    {programs.map((program, index) => (
+                                        <option key={`program-${index}-${program}`} value={program}>
                                             {program}
                                         </option>
                                     ))}
