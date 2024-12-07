@@ -8,7 +8,7 @@ const router = Router();
 // 搜索大学排名
 router.get("/search", async (req: Request, res: Response) => {
     const { keyword, country, source, academicRepFilter } = req.query;
-
+                                        
     try {
         const rankings = await searchRanking(
             (keyword as string) || "",

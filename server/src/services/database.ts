@@ -244,16 +244,49 @@ export async function getAllUniversities(): Promise<University[]> {
  * @param universityName - The name of the university to fetch.
  * @returns Promise resolving to a University object or null if not found.
  */
-export async function getUniversityByName(universityName: string): Promise<University | null> {
+export async function getUniversityByName(
+    universityName: string,
+    description?: string,
+    establishment?: string,
+    location?: string,
+    country?: string,
+    popularity?: number
+): Promise<University[]> {
     const sqlQuery = `
-        SELECT universityName, description, establishment, location, country, popularity
-        FROM University
-        WHERE universityName = ?;
+        SELECT 
+            u.universityName, 
+            u.description, 
+            u.establishment, 
+            u.location, 
+            u.country, 
+            u.popularity,
+            rm.source,
+            rm.academicRep,
+            rm.employerRep,
+            rm.facultyStudentScore,
+            rm.citationPerFaculty,
+            rm.internationalScore
+        FROM University u
+        LEFT JOIN RankingMetric rm ON u.universityName = rm.universityName
+        WHERE u.universityName LIKE ?
+        ${description ? "AND u.description LIKE ?" : ""}
+        ${establishment ? "AND u.establishment LIKE ?" : ""}
+        ${location ? "AND u.location LIKE ?" : ""}
+        ${country ? "AND u.country LIKE ?" : ""}
+        ${popularity !== undefined ? "AND u.popularity = ?" : ""}
+        ORDER BY u.popularity DESC;
     `;
+
+    const queryParams = [`%${universityName}%`];
+    if (description) queryParams.push(`%${description}%`);
+    if (establishment) queryParams.push(`%${establishment}%`);
+    if (location) queryParams.push(`%${location}%`);
+    if (country) queryParams.push(`%${country}%`);
+    if (popularity !== undefined) queryParams.push(popularity.toString());
+
     try {
-        const [rows] = await pool.query<RowDataPacket[]>(sqlQuery, [universityName]);
-        const universities = rows as University[];
-        return universities[0] || null;
+        const [rows] = await pool.query<RowDataPacket[]>(sqlQuery, queryParams);
+        return rows as University[];
     } catch (error) {
         console.error("Error in getUniversityByName:", error);
         throw error;
@@ -315,7 +348,7 @@ export async function createUniversity(university: Omit<University, 'universityN
 export async function updateUniversity(
     universityName: string,
     updatedFields: Partial<Omit<University, 'universityName'>>
-): Promise<University | null> {
+): Promise<University[]> {
     const allowedFields: (keyof Omit<University, 'universityName'>)[] = ['description', 'establishment', 'location', 'country', 'popularity'];
     const setClauses: string[] = [];
     const values: any[] = [];
@@ -342,7 +375,7 @@ export async function updateUniversity(
     try {
         const [result] = await pool.query<ResultSetHeader>(sqlQuery, values);
         if (result.affectedRows === 0) {
-            return null; // University not found
+            return []; // University not found
         }
         // Fetch the updated university
         return await getUniversityByName(universityName);

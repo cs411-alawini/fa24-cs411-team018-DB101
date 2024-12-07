@@ -25,14 +25,18 @@ router.get("/", async (req: Request, res: Response) => {
 
 
 router.get("/:universityName", async (req: Request, res: Response) => {
-    const { universityName } = req.params;
+    const { universityName, description, establishment, location, country, popularity } = req.query;
 
     try {
-        const university: University | null = await getUniversityByName(universityName);
-        // if (!university) {
-        //     return res.status(404).json({ success: false, message: "University not found" });
-        // }
-        res.status(200).json({ success: true, data: university });
+        const university = await getUniversityByName(
+            universityName as string,
+            description as string,
+            establishment as string,
+            location as string,
+            country as string,
+            Number(popularity)
+        );
+            res.status(200).json({ success: true, data: university });
     } catch (error) {
         console.error("Error fetching university:", error);
         res.status(500).json({ success: false, message: "Server error" });
