@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserInfo, changeName, deleteUser } from '../services/userServices'; // 假设这是您API所在的路径
+import { getUserInfo, changeName, deleteUser, getUserFavourites } from '../services/userServices'; // 假设这是您API所在的路径
 
 export interface User {
     userID: number;
@@ -16,6 +16,8 @@ const UserProfile: React.FC = () => {
     const [newUsername, setNewUsername] = useState("");
     const [alert, setAlert] = useState<{type: 'success' | 'error', message: string} | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [favourites, setFavourites] = useState<string[]>([]);
+
 
     useEffect(() => {
         const userID = localStorage.getItem('userID');
@@ -24,7 +26,19 @@ const UserProfile: React.FC = () => {
             return;
         }
         fetchUserData(userID);
+        fetchUserFavourites(userID); // 加载收藏数据
     }, []);
+
+    const fetchUserFavourites = async (userID: string) => {
+        try {
+            const response = await getUserFavourites(userID);
+            if (response.success) {
+                setFavourites(response.data.map((item) => item.universityName));
+            }
+        } catch (error) {
+            console.error("Error fetching favourites:", error);
+        }
+    };
 
     const fetchUserData = async (userID: string) => {
         try {
@@ -112,6 +126,14 @@ const UserProfile: React.FC = () => {
 
     return (
         <div className="flex flex-col md:flex-row gap-6 p-6 h-full w-full">
+            {/* 返回按钮 */}
+            <button
+                onClick={() => navigate('/home')}
+                className="absolute top-4 left-4 text-blue-500 hover:text-blue-600 font-bold flex items-center"
+            >
+                ← Back to Home
+            </button>
+
             {/* Alert Messages */}
             {alert && (
                 <div className={`fixed top-4 right-4 p-4 rounded-md shadow-lg ${
@@ -203,11 +225,21 @@ const UserProfile: React.FC = () => {
                 <div className="md:w-2/3 flex-grow">
                     <div className="bg-white rounded-lg shadow-md p-6 h-full">
                         <h2 className="text-2xl font-bold mb-6">My Favorites</h2>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 h-[calc(100%-4rem)] flex items-center justify-center">
-                            <span className="text-gray-500">
-                                Later favorite universities will be played here
-                            </span>
-                        </div>
+                        {favourites.length > 0 ? (
+                            <ul className="space-y-2">
+                                {favourites.map((university, index) => (
+                                    <li key={index} className="border-b border-gray-300 pb-2">
+                                        {university}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 h-[calc(100%-4rem)] flex items-center justify-center">
+                                <span className="text-gray-500">
+                                    No favorite universities found.
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
