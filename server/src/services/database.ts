@@ -540,3 +540,14 @@ export async function updateRankingInDatabase(rankingData: any): Promise<void> {
         throw error;
     }
 }
+
+export async function getUserFavourites(userID: number): Promise<{ universityName: string }[]> {
+    const sqlQuery = `SELECT universityName FROM Favourite WHERE userID = ?`;
+    try {
+        const [rows] = await pool.query(sqlQuery, [userID]);
+        return rows as { universityName: string }[];
+    } catch (error) {
+        console.error("Error in getUserFavourites:", error);
+        throw error;
+    }
+}

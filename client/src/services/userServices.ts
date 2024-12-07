@@ -48,3 +48,7 @@ export const deleteUser = (userID:string):Promise<ServerResponse> =>{
     return httpClient.delete(`/api/user/${userID}`)
         .then((response) => response.data)
 }
+
+export const getUserFavourites = (userID: string): Promise<{ success: boolean; data: { universityName: string }[] }> => {
+    return axios.get(`${BASE_URL}/api/user/favourites/${userID}`).then((response) => response.data);
+};

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getUserByID, loginVerify, addUser, updateUserName, deleteUser } from "../services/database";
+import { getUserByID, loginVerify, addUser, updateUserName, deleteUser, getUserFavourites } from "../services/database";
 import { User } from "../models/User";
 
 const router = Router();
@@ -133,6 +133,22 @@ router.delete("/:userID", async (req: Request, res: Response) => {
             success: false,
             message: "Server error"
         });
+    }
+});
+
+router.get("/favourites/:userID", async (req, res) => {
+    const userID = parseInt(req.params.userID, 10);
+
+    if (isNaN(userID)) {
+        return res.status(400).json({ success: false, message: "Invalid userID" });
+    }
+
+    try {
+        const favourites = await getUserFavourites(userID);
+        res.json({ success: true, data: favourites });
+    } catch (error) {
+        console.error("Error fetching favourites:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch favourites" });
     }
 });
 
