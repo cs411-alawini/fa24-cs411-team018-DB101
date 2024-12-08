@@ -226,7 +226,7 @@ export async function getCountriesFromDatabase() {
  */
 export async function getAllUniversities(): Promise<University[]> {
     const sqlQuery = `
-        SELECT universityName, description, establishment, location, country, popularity
+        SELECT universityName, description, establishmentDate, location, country, popularity
         FROM University
         ORDER BY popularity DESC;
     `;
@@ -247,7 +247,7 @@ export async function getAllUniversities(): Promise<University[]> {
 export async function getUniversityByName(
     universityName: string,
     description?: string,
-    establishment?: string,
+    establishmentDate?: string,
     location?: string,
     country?: string,
     popularity?: number
@@ -256,21 +256,14 @@ export async function getUniversityByName(
         SELECT 
             u.universityName, 
             u.description, 
-            u.establishment, 
+            u.establishmentDate, 
             u.location, 
             u.country, 
-            u.popularity,
-            rm.source,
-            rm.academicRep,
-            rm.employerRep,
-            rm.facultyStudentScore,
-            rm.citationPerFaculty,
-            rm.internationalScore
+            u.popularity
         FROM University u
-        LEFT JOIN RankingMetric rm ON u.universityName = rm.universityName
         WHERE u.universityName LIKE ?
         ${description ? "AND u.description LIKE ?" : ""}
-        ${establishment ? "AND u.establishment LIKE ?" : ""}
+        ${establishmentDate ? "AND u.establishment LIKE ?" : ""}
         ${location ? "AND u.location LIKE ?" : ""}
         ${country ? "AND u.country LIKE ?" : ""}
         ${popularity !== undefined ? "AND u.popularity = ?" : ""}
@@ -279,13 +272,13 @@ export async function getUniversityByName(
 
     const queryParams = [`%${universityName}%`];
     if (description) queryParams.push(`%${description}%`);
-    if (establishment) queryParams.push(`%${establishment}%`);
+    if (establishmentDate) queryParams.push(`%${establishmentDate}%`);
     if (location) queryParams.push(`%${location}%`);
     if (country) queryParams.push(`%${country}%`);
     if (popularity !== undefined) queryParams.push(popularity.toString());
 
     try {
-        const [rows] = await pool.query<RowDataPacket[]>(sqlQuery, queryParams);
+        const [rows] = await pool.query(sqlQuery, queryParams);
         return rows as University[];
     } catch (error) {
         console.error("Error in getUniversityByName:", error);
@@ -295,7 +288,7 @@ export async function getUniversityByName(
 
 export async function getUniversityByPopularity(popularity: number): Promise<University[]> {
     const sqlQuery = `
-        SELECT universityName, description, establishment, location, country, popularity
+        SELECT universityName, description, establishmentDate, location, country, popularity
         FROM University
         WHERE popularity = ?;
     `;
@@ -315,15 +308,15 @@ export async function getUniversityByPopularity(popularity: number): Promise<Uni
  */
 export async function createUniversity(university: Omit<University, 'universityName'> & { universityName: string }): Promise<University> {
     const sqlQuery = `
-        INSERT INTO University (universityName, description, establishment, location, country, popularity)
+        INSERT INTO University (universityName, description, establishmentDate, location, country, popularity)
         VALUES (?, ?, ?, ?, ?, ?);
     `;
-    const { universityName, description, establishment, location, country, popularity } = university;
+    const { universityName, description, establishmentDate, location, country, popularity } = university;
     try {
         const [result] = await pool.query<ResultSetHeader>(sqlQuery, [
             universityName,
             description,
-            establishment,
+            establishmentDate,
             location,
             country,
             popularity
@@ -332,7 +325,7 @@ export async function createUniversity(university: Omit<University, 'universityN
         if (result.affectedRows === 0) {
             throw new Error("Failed to create university");
         }
-        return { universityName, description, establishment, location, country, popularity };
+        return { universityName, description, establishmentDate, location, country, popularity };
     } catch (error) {
         console.error("Error in createUniversity:", error);
         throw error;
@@ -349,7 +342,7 @@ export async function updateUniversity(
     universityName: string,
     updatedFields: Partial<Omit<University, 'universityName'>>
 ): Promise<University[]> {
-    const allowedFields: (keyof Omit<University, 'universityName'>)[] = ['description', 'establishment', 'location', 'country', 'popularity'];
+    const allowedFields: (keyof Omit<University, 'universityName'>)[] = ['description', 'establishmentDate', 'location', 'country', 'popularity'];
     const setClauses: string[] = [];
     const values: any[] = [];
 
@@ -416,15 +409,54 @@ export async function getAllComments(): Promise<Comment[]> {
     }
 }
 
-export async function createComment(comment: Comment): Promise<Comment> {
-    const sqlQuery = `INSERT INTO Comment (universityName, userId, livingEnvironment, library, restaurant, content, date) VALUES (?, ?, ?, ?, ?, ?, ?);`;
+export async function getCommentByUserId(userId: number): Promise<Comment[]> {
+    const sqlQuery = `SELECT * FROM Comment WHERE userId = ?;`;
     try {
-        const [result] = await pool.query<ResultSetHeader>(sqlQuery, [comment.universityName, comment.userId, comment.livingEnvironment, comment.library, comment.restaurant, comment.content, comment.date]);
-        await updateUniversityPopularity(comment.universityName, 1);
+        const [rows] = await pool.query<RowDataPacket[]>(sqlQuery, [userId]);
+        return rows as Comment[];
+    } catch (error) {
+        console.error("Error in getCommentByUserId:", error);
+        throw error;
+    }
+}
+
+export async function createComment(comment: Comment): Promise<Comment> {
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        // Insert the comment
+        const [result] = await connection.query<ResultSetHeader>(
+            `INSERT INTO Comment (universityName, userId, livingEnvironment, library, restaurant, content, date) VALUES (?, ?, ?, ?, ?, ?, ?);`,
+            [
+                comment.universityName,
+                comment.userId,
+                comment.livingEnvironment,
+                comment.library,
+                comment.restaurant,
+                comment.content,
+                comment.date,
+            ]
+        );
+
+        // Update popularity
+        const [updateResult] = await connection.query<ResultSetHeader>(
+            `UPDATE University SET popularity = popularity + ? WHERE universityName = ?;`,
+            [1, comment.universityName]
+        );
+
+        if (updateResult.affectedRows === 0) {
+            throw new Error("Failed to update university popularity");
+        }
+
+        await connection.commit(); // Commit transaction
         return { ...comment, commentId: result.insertId };
     } catch (error) {
-        console.error("Error in createComment:", error);
+        await connection.rollback(); // Rollback on error
+        console.error("Error in createCommentWithTransaction:", error);
         throw error;
+    } finally {
+        connection.release();
     }
 }
 

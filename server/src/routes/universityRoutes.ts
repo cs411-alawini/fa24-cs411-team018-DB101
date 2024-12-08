@@ -25,23 +25,25 @@ router.get("/", async (req: Request, res: Response) => {
 
 
 router.get("/:universityName", async (req: Request, res: Response) => {
-    const { universityName, description, establishment, location, country, popularity } = req.query;
+    const { universityName } = req.params;
+    const { description, establishmentDate, location, country, popularity } = req.query;
 
     try {
         const university = await getUniversityByName(
-            universityName as string,
-            description as string,
-            establishment as string,
-            location as string,
-            country as string,
-            Number(popularity)
+            (universityName as string || ""),
+            (description as string || ""),
+            (establishmentDate as string || ""),
+            ( location as string || "" ),
+            (country as string || ""),
+            Number(popularity) || undefined
         );
-            res.status(200).json({ success: true, data: university });
+        res.status(200).json({ success: true, data: university});
     } catch (error) {
         console.error("Error fetching university:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
+
 router.get("/popularity/:popularity", async (req: Request, res: Response) => {
     const { popularity } = req.params;
 
@@ -57,7 +59,7 @@ router.get("/popularity/:popularity", async (req: Request, res: Response) => {
 
 
 router.post("/", async (req: Request, res: Response) => {
-    const { universityName, description, establishment, location, country, popularity } = req.body;
+    const { universityName, description, establishmentDate, location, country, popularity } = req.body;
 
     
     // if (!universityName || !description || !establishment || !location || !country || popularity === undefined) {
@@ -67,7 +69,7 @@ router.post("/", async (req: Request, res: Response) => {
     const newUniversity: University = {
         universityName,
         description,
-        establishment,
+        establishmentDate,
         location,
         country,
         popularity,
@@ -85,16 +87,16 @@ router.post("/", async (req: Request, res: Response) => {
 
 router.put("/:universityName", async (req: Request, res: Response) => {
     const { universityName } = req.params;
-    const { description, establishment, location, country, popularity } = req.body;
+    const { description, establishmentDate, location, country, popularity } = req.body;
 
     
-    // if (!description && !establishment && !location && !country && popularity === undefined) {
+    // if (!description && !establishmentDate && !location && !country && popularity === undefined) {
     //     return res.status(400).json({ success: false, message: "At least one field must be updated" });
     // }
 
     const updatedFields: Partial<University> = {};
     if (description) updatedFields.description = description;
-    if (establishment) updatedFields.establishment = establishment;
+    if (establishmentDate) updatedFields.establishmentDate = establishmentDate;
     if (location) updatedFields.location = location;
     if (country) updatedFields.country = country;
     if (popularity !== undefined) updatedFields.popularity = popularity;

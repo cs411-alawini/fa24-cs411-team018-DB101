@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { Comment } from "../models/Comment";
-import { getAllComments, createComment, updateComment, deleteComment } from "../services/database";
+import { getAllComments, getCommentByUserId, createComment, updateComment, deleteComment } from "../services/database";
 
 const router = Router();
 
@@ -13,6 +13,20 @@ router.get("/", async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
+
+router.get('/:userId', async (req, res) => {
+    console.log('Received request to /comment/:userId');
+    const userId = Number(req.params.userId);
+    console.log('Extracted userId:', userId);
+    try {
+      const comments = await getCommentByUserId(userId);
+      res.status(200).json({ success: true, data: comments });
+    } catch (error) {
+      console.error('Error fetching comments by user ID:', error);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+  
 
 router.post("/", async (req: Request, res: Response) => {
     try {

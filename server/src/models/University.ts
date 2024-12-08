@@ -1,7 +1,7 @@
 export interface University{
     universityName: string,
     description: string,
-    establishment: string,
+    establishmentDate: string,
     location: string,
     country: string
     popularity: number

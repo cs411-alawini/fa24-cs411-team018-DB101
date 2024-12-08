@@ -119,7 +119,7 @@ router.delete("/:userID", async (req: Request, res: Response) => {
             res.status(200).json({
                 success: true,
                 message: "User deleted successfully"
-            });
+            }); 
         } else {
             res.status(404).json({
                 success: false,
