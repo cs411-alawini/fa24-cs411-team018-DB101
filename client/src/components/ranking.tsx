@@ -19,6 +19,11 @@ const RankingPage: React.FC = () => {
     const [source, setSource] = useState<string>(""); // 来源筛选
     const [country, setCountry] = useState<string>(""); // 国家筛选
     const [academicRepFilter, setAcademicRepFilter] = useState<string>(""); // Academic Rep 筛选
+    const [employerRepFilter, setEmployerRepFilter] = useState<string>("");
+    const [facultyStudentFilter, setFacultyStudentFilter] = useState<string>("");
+    const [citationPerFacultyFilter, setCitationPerFacultyFilter] = useState<string>("");
+    const [internationalScoreFilter, setInternationalScoreFilter] = useState<string>("");
+
     const [rankings, setRankings] = useState<any[]>([]); // 排名数据
     const [countries, setCountries] = useState<string[]>([]); // 国家列表
     const [alert, setAlert] = useState<string | null>(null); // 提示信息
@@ -81,13 +86,18 @@ const RankingPage: React.FC = () => {
     };
     
     const handleClear = () => {
-        // 清空所有筛选条件
+        // Clear all filters
         setKeyword("");
         setCountry("");
         setSource("");
         setAcademicRepFilter("");
-        setRankings([]); // 清空当前显示的结果
+        setEmployerRepFilter(""); // Clear employerRepFilter
+        setFacultyStudentFilter(""); // Clear facultyStudentFilter
+        setCitationPerFacultyFilter(""); // Clear citationPerFacultyFilter
+        setInternationalScoreFilter(""); // Clear internationalScoreFilter
+        setRankings([]); // Clear the displayed results
     };
+    
 
     const handleAddRanking = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -123,7 +133,16 @@ const RankingPage: React.FC = () => {
     };
     const handleSearch = async () => {
         try {
-            const response = await filterRankings(keyword, country, source, academicRepFilter);
+            const response = await filterRankings(
+                keyword,
+                country,
+                source,
+                academicRepFilter,
+                employerRepFilter,
+                facultyStudentFilter,
+                citationPerFacultyFilter,
+                internationalScoreFilter
+            );
             const rankingData = response.data.data || [];
     
             // 检查每个大学是否已被收藏
@@ -145,6 +164,7 @@ const RankingPage: React.FC = () => {
             setAlert("Failed to fetch rankings. Please try again.");
         }
     };
+    
 
     const toggleFavourite = async (universityName: string, isFavourite: boolean) => {
         if (!userID || !universityName) {
@@ -265,22 +285,22 @@ const RankingPage: React.FC = () => {
                 </div>
             )}
 
-            <div className="mb-4">
-                {/* 搜索关键词输入框 */}
-                <input
-                    type="text"
-                    placeholder="Search by keyword"
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    className="p-2 border rounded w-full mb-2"
-                />
+<div className="mb-4">
+    {/* 搜索关键词输入框 */}
+    <input
+        type="text"
+        placeholder="Search by keyword"
+        value={keyword}
+        onChange={(e) => setKeyword(e.target.value)}
+        className="p-2 border rounded w-full mb-2"
+    />
 
-                <div className="mb-4">
+                <div className="mb-4 grid grid-cols-2 gap-4">
                     {/* 国家筛选下拉框 */}
                     <select
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
-                        className="p-2 border rounded w-full mb-2"
+                        className="p-2 border rounded"
                     >
                         <option value="">All Countries</option>
                         {countries.map((c) => (
@@ -294,7 +314,7 @@ const RankingPage: React.FC = () => {
                     <select
                         value={source}
                         onChange={(e) => setSource(e.target.value)}
-                        className="p-2 border rounded w-full mb-2"
+                        className="p-2 border rounded"
                     >
                         <option value="">All Sources</option>
                         <option value="QS">QS</option>
@@ -305,16 +325,64 @@ const RankingPage: React.FC = () => {
                     <select
                         value={academicRepFilter}
                         onChange={(e) => setAcademicRepFilter(e.target.value)}
-                        className="p-2 border rounded w-full"
+                        className="p-2 border rounded"
                     >
                         <option value="">All Academic Rep</option>
                         <option value="<30">{"< 30"}</option>
                         <option value="30-60">30 - 60</option>
                         <option value=">60">{"> 60"}</option>
                     </select>
-                </div>
 
+                    {/* Employer Rep 筛选下拉框 */}
+                    <select
+                        value={employerRepFilter}
+                        onChange={(e) => setEmployerRepFilter(e.target.value)}
+                        className="p-2 border rounded"
+                    >
+                        <option value="">All Employer Rep</option>
+                        <option value="<30">{"< 30"}</option>
+                        <option value="30-60">30 - 60</option>
+                        <option value=">60">{"> 60"}</option>
+                    </select>
+
+                    {/* Faculty/Student 筛选下拉框 */}
+                    <select
+                        value={facultyStudentFilter}
+                        onChange={(e) => setFacultyStudentFilter(e.target.value)}
+                        className="p-2 border rounded"
+                    >
+                        <option value="">All Faculty/Student</option>
+                        <option value="<30">{"< 30"}</option>
+                        <option value="30-60">30 - 60</option>
+                        <option value=">60">{"> 60"}</option>
+                    </select>
+
+                    {/* Citation/Faculty 筛选下拉框 */}
+                    <select
+                        value={citationPerFacultyFilter}
+                        onChange={(e) => setCitationPerFacultyFilter(e.target.value)}
+                        className="p-2 border rounded"
+                    >
+                        <option value="">All Citation/Faculty</option>
+                        <option value="<30">{"< 30"}</option>
+                        <option value="30-60">30 - 60</option>
+                        <option value=">60">{"> 60"}</option>
+                    </select>
+
+                    {/* International Score 筛选下拉框 */}
+                    <select
+                        value={internationalScoreFilter}
+                        onChange={(e) => setInternationalScoreFilter(e.target.value)}
+                        className="p-2 border rounded"
+                    >
+                        <option value="">All International Score</option>
+                        <option value="<30">{"< 30"}</option>
+                        <option value="30-60">30 - 60</option>
+                        <option value=">60">{"> 60"}</option>
+                    </select>
+                </div>
             </div>
+
 
             <div className="flex gap-4">
                 <button
