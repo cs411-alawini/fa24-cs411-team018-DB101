@@ -214,7 +214,9 @@ const UniversityPage: React.FC = () => {
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", fontFamily: "Arial, sans-serif" }}>
-      <h1 style={{ textAlign: "center", color: "#1a202c", fontSize: "2rem", margin: "20px 0" }}>Universities</h1>
+      <h1 style={{ textAlign: "center", color: "#1a202c", fontSize: "2rem", margin: "20px 0", fontFamily: "'Playfair Display', serif" }}>
+        Universities
+      </h1>
 
       <div style={{ marginBottom: "20px" }}>
         <input
