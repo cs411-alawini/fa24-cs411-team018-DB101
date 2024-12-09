@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getUserInfo, changeName, deleteUser, getUserFavourites } from '../services/userServices'; // 假设这是您API所在的路径
 
 export interface User {
@@ -229,7 +229,13 @@ const UserProfile: React.FC = () => {
                             <ul className="space-y-2">
                                 {favourites.map((university, index) => (
                                     <li key={index} className="border-b border-gray-300 pb-2">
-                                        {university}
+                                        <Link
+                                            to={`/university/${encodeURIComponent(university)}`}
+                                            state={{ from: '/user/userId' }}
+                                            className="text-blue-500 hover:text-blue-600"
+                                        >
+                                            {university}
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>

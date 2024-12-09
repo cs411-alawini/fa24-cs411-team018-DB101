@@ -11,7 +11,7 @@ import {
     filterRankings
     
 } from "../services/rankingServices";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const RankingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -431,7 +431,17 @@ const RankingPage: React.FC = () => {
             <tbody>
                 {displayedRankings.map((ranking, index) => (
                     <tr key={index} className="hover:bg-gray-50">
-                        <td className="border border-gray-300 px-4 py-2">{ranking.universityName || "N/A"}</td>
+                        {/* 修改大学名称为可点击链接 */}
+                        <td className="border border-gray-300 px-4 py-2">
+                            <Link
+                                to={`/university/${encodeURIComponent(ranking.universityName)}`}
+                                state={{ from: "/ranking" }}
+                                className="text-blue-500 hover:underline"
+                            >
+                                {ranking.universityName || "N/A"}
+                            </Link>
+                        </td>
+                        {/* <td className="border border-gray-300 px-4 py-2">{ranking.universityName || "N/A"}</td> */}
                         <td className="border border-gray-300 px-4 py-2">{ranking.source}</td>
                         <td className="border border-gray-300 px-4 py-2">{ranking.academicRep}</td>
                         <td className="border border-gray-300 px-4 py-2">{ranking.employerRep}</td>
