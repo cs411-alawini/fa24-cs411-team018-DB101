@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { getRankingAndCommentAndUniveristyByUniversityName } from "../services/universityServices";
 import { createComment } from "../services/commentServices";
 
@@ -190,6 +190,7 @@ const UniversityInfoPage: React.FC = () => {
       <h1 style={{ textAlign: "center", color: "#1a202c", fontSize: "2.5rem", margin: "20px 0", fontWeight: "bold" }}>
         {university.universityName}
       </h1>
+      
       <p style={{ color: "#555", fontSize: "1.2rem", marginBottom: "10px" }}>{university.description}</p>
       <div style={{ background: "#f9f9f9", padding: "20px", borderRadius: "8px", marginBottom: "20px" }}>
         <p><strong>Establishment:</strong> {university.establishmentDate}</p>
