@@ -621,3 +621,122 @@ export async function getUserFavourites(userID: number): Promise<{ universityNam
         throw error;
     }
 }
+//     universityName: string;
+//     description: string,
+//     establishmentDate: string,
+//     location: string,
+//     country: string
+//     popularity: number
+//     source: string;
+//     academicRep: number;
+//     employerRep: number;
+//     facultyStudentScore: number;
+//     citationPerFaculty: number;
+//     internationalScore: number;
+//     livingEnvironment: number;
+//     library: number;
+//     restaurant: number;
+//     content: string;
+//     date: Date;
+export async function getRankingAndCommentAndUniveristyByUniversityName(
+    universityName: string,
+    source?: string,
+    academicRep?: number,
+    employerRep?: number,
+    facultyStudentScore?: number,
+    citationPerFaculty?: number,
+    internationalScore?: number,
+    description?: string,
+    establishmentDate?: string,
+    location?: string,
+    country?: string,
+    popularity?: number,
+    livingEnvironment?: number,
+    learningAtmosphere?: number,
+    library?: number,
+    restaurant?: number,
+    content?: string,
+    date?: Date
+  ): Promise<any[]> {
+    let sqlQuery = `
+          SELECT DISTINCT
+              rm.universityName,
+              rm.source,
+              rm.academicRep,
+              rm.employerRep,
+              rm.facultyStudentScore,
+              rm.citationPerFaculty,
+              rm.internationalScore,
+              u.description,
+              u.establishmentDate,
+              u.location,
+              u.country,
+              u.popularity,
+              c.livingEnvironment,
+              c.learningAtmosphere,
+              c.library,
+              c.restaurant,
+              c.content,
+              c.date
+          FROM
+              University u
+          LEFT JOIN
+              RankingMetric rm
+          ON
+              rm.universityName = u.universityName
+          LEFT JOIN
+              Comment c
+          ON
+              u.universityName = c.universityName
+          WHERE
+              u.universityName LIKE ?
+        ${source ? "AND rm.source = ?" : ""}
+        ${academicRep ? "AND rm.academicRep = ?" : ""}
+        ${employerRep ? "AND rm.employerRep = ?" : ""}
+        ${facultyStudentScore ? "AND rm.facultyStudentScore = ?" : ""}
+        ${citationPerFaculty ? "AND rm.citationPerFaculty = ?" : ""}
+        ${internationalScore ? "AND rm.internationalScore = ?" : ""}
+        ${description ? "AND u.description LIKE ?" : ""}
+        ${establishmentDate ? "AND u.establishmentDate LIKE ?" : ""}
+        ${location ? "AND u.location LIKE ?" : ""}
+        ${country ? "AND u.country LIKE ?" : ""}
+        ${popularity ? "AND u.popularity = ?" : ""}
+        ${livingEnvironment ? "AND c.livingEnvironment = ?" : ""}
+        ${learningAtmosphere ? "AND c.learningAtmosphere = ?" : ""}
+        ${library ? "AND c.library = ?" : ""}
+        ${restaurant ? "AND c.restaurant = ?" : ""}
+        ${content ? "AND c.content LIKE ?" : ""}
+        
+    `;
+  
+    const queryParams = [`%${universityName}%`];
+    if (source) queryParams.push(source);
+    if (academicRep) queryParams.push(academicRep.toString());
+    if (employerRep) queryParams.push(employerRep.toString());
+    if (facultyStudentScore) queryParams.push(facultyStudentScore.toString());
+    if (citationPerFaculty) queryParams.push(citationPerFaculty.toString());
+    if (internationalScore) queryParams.push(internationalScore.toString());
+    if (description) queryParams.push(`%${description}%`);
+    if (establishmentDate) queryParams.push(`%${establishmentDate}%`);
+    if (location) queryParams.push(`%${location}%`);
+    if (country) queryParams.push(`%${country}%`);
+    if (popularity) queryParams.push(popularity.toString());
+    if (livingEnvironment) queryParams.push(livingEnvironment.toString());
+    if (learningAtmosphere) queryParams.push(learningAtmosphere.toString());
+    if (library) queryParams.push(library.toString());
+    if (restaurant) queryParams.push(restaurant.toString());
+    if (content) queryParams.push(`%${content}%`);
+    if (date) {queryParams.push(date.toISOString().split('T')[0]);}
+    
+    try {
+      console.log("Executing Query:", sqlQuery);
+      console.log("With Parameters:", queryParams);
+      const [rows] = await pool.query(sqlQuery, queryParams);
+      return rows as any[];
+    } catch (error) {
+      console.error("Error in getRankingAndCommentAndUniversityByUniversityName:", error);
+      throw error;
+    }
+  }
+  
+  

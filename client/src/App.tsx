@@ -9,6 +9,7 @@ import Homepage from './pages/homePage';
 import AdmissionDataPage from './pages/admissionPage';
 import UniversityPage from './pages/universityPage'; 
 import CommentPage from './components/commentProfile';
+import UniversityInfoPage from './pages/UniversityInfoPage';
 
 
  const App: React.FC = () => {
@@ -29,6 +30,11 @@ import CommentPage from './components/commentProfile';
         </Route>
         <Route path='/university' element={<UniversityPage/>}>
         </Route>
+        <Route path="/" element={<UniversityPage />} />
+        <Route
+          path="/university/:universityName"
+          element={<UniversityInfoPage />}
+        />
         <Route path='/comment' element={<CommentPage/>}>
         </Route>
       </Routes>

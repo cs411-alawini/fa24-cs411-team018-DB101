@@ -3,7 +3,8 @@ import axios from 'axios';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3007";
 
 export const getUniversityByName = async (universityName: string) => {
-    return axios.get(`${API_BASE_URL}/api/university/${encodeURIComponent(universityName)}`);
+    const response = axios.get(`${API_BASE_URL}/api/university/${encodeURIComponent(universityName)}`);
+    return response;
 };
 
 export const getAllUniversities = async () => {
@@ -55,4 +56,12 @@ export const deleteUniversity = async (universityName: string) => {
     return axios.delete(`${API_BASE_URL}/api/university/${encodeURIComponent(universityName)}`);
 };
 
+export const getRankingAndCommentAndUniveristyByUniversityName = async (universityName: string) => {
+    try {
+        return await axios.get(`${API_BASE_URL}/api/university/${encodeURIComponent(universityName)}/info`);
+      } catch (error) {
+        console.error("Error fetching university info:", error);
+        throw error; // Rethrow the error for the caller to handle.
+      }
+};
 

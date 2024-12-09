@@ -7,6 +7,7 @@ import {
   updateUniversity,
   deleteUniversity,
 } from "../services/universityServices";
+import { Link } from "react-router-dom";
 
 const UniversityPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,6 +68,34 @@ const UniversityPage: React.FC = () => {
     }
   };
 
+  // const handleSearch = async () => {
+  //   setLoading(true);
+  //   setError("");
+  //   try {
+  //     let response;
+  //     if (searchType === "name") {
+  //       response = await getUniversityByName(searchTerm);
+  //     } else if (searchType === "popularity") {
+  //       response = await getUniversityByPopularity(Number(searchPopularity));
+  //     }
+
+  //     const universitiesData = response?.data?.data.map((university: any) => ({
+  //       universityName: university.universityName,
+  //       description: university.description,
+  //       establishmentDate: university.establishmentDate,
+  //       location: university.location,
+  //       country: university.country,
+  //       popularity: university.popularity,
+  //     }));
+
+  //     setUniversities(universitiesData || []);
+  //   } catch (err) {
+  //     setError("An error occurred while fetching universities.");
+  //     console.error(err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
   const handleSearch = async () => {
     setLoading(true);
     setError("");
@@ -74,23 +103,21 @@ const UniversityPage: React.FC = () => {
       let response;
       if (searchType === "name") {
         response = await getUniversityByName(searchTerm);
-      } else if (searchType === "popularity") {
-        response = await getUniversityByPopularity(Number(searchPopularity));
       }
-
       const universitiesData = response?.data?.data.map((university: any) => ({
-        universityName: university.universityName,
-        description: university.description,
-        establishmentDate: university.establishmentDate,
-        location: university.location,
-        country: university.country,
-        popularity: university.popularity,
-      }));
-
-      setUniversities(universitiesData || []);
-    } catch (err) {
-      setError("An error occurred while fetching universities.");
-      console.error(err);
+              universityName: university.universityName,
+              description: university.description,
+              establishmentDate: university.establishmentDate,
+              location: university.location,
+              country: university.country,
+              popularity: university.popularity,
+            }));
+      
+            setUniversities(universitiesData || []);
+    } catch (error) {
+      console.error("Error searching universities:", error);
+      setError("Failed to search universities");
+      setUniversities([]);
     } finally {
       setLoading(false);
     }
@@ -189,62 +216,22 @@ const UniversityPage: React.FC = () => {
     <div style={{ maxWidth: "800px", margin: "0 auto", fontFamily: "Arial, sans-serif" }}>
       <h1 style={{ textAlign: "center", color: "#1a202c", fontSize: "2rem", margin: "20px 0" }}>Universities</h1>
 
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
-        <label style={{ marginRight: "20px" }}>
-          <input
-            type="radio"
-            value="name"
-            checked={searchType === "name"}
-            onChange={() => setSearchType("name")}
-          />
-          <span style={{ marginLeft: "5px" }}>Search by Name</span>
-        </label>
-        <label>
-          <input
-            type="radio"
-            value="popularity"
-            checked={searchType === "popularity"}
-            onChange={() => setSearchType("popularity")}
-          />
-          <span style={{ marginLeft: "5px" }}>Search by Popularity</span>
-        </label>
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Enter university name"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "10px",
+            borderRadius: "5px",
+            border: "1px solid #ccc",
+            fontSize: "1rem",
+          }}
+        />
       </div>
 
-      {searchType === "name" && (
-        <div style={{ marginBottom: "20px" }}>
-          <input
-            type="text"
-            placeholder="Enter university name"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ccc",
-              fontSize: "1rem",
-            }}
-          />
-        </div>
-      )}
-
-      {searchType === "popularity" && (
-        <div style={{ marginBottom: "20px" }}>
-          <input
-            type="number"
-            placeholder="Enter popularity"
-            value={searchPopularity}
-            onChange={(e) => setSearchPopularity(Number(e.target.value) || "")}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "5px",
-              border: "1px solid #ccc",
-              fontSize: "1rem",
-            }}
-          />
-        </div>
-      )}
 
       <button
         onClick={handleSearch}
@@ -332,7 +319,7 @@ const UniversityPage: React.FC = () => {
           </button> */}
         </div>
       )}
-
+      
       <ul style={{ listStyle: "none", padding: "0", marginTop: "20px" }}>
         {universities.map((university: any, index: number) => (
           <li
@@ -345,11 +332,31 @@ const UniversityPage: React.FC = () => {
               marginBottom: "10px",
             }}
           >
+            <div>
             <h3 style={{ margin: "0 0 10px 0", color: "#007BFF" }}>{university.universityName}</h3>
-            <p><strong>Description:</strong> {university.description}</p>
-            <p><strong>Location:</strong> {university.location}</p>
-            <p><strong>Country:</strong> {university.country}</p>
-            <p><strong>Popularity:</strong> {university.popularity}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <p><strong>Description:</strong> {university.description}</p>
+                <p><strong>Location:</strong> {university.location}</p>
+                <p><strong>Country:</strong> {university.country}</p>
+                <p><strong>Popularity:</strong> {university.popularity}</p>
+              </div>
+              <div>
+                <Link
+                  to={`/university/${encodeURIComponent(university.universityName)}`}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#007BFF",
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "5px",
+                  }}
+                >
+                  View Details
+                </Link>
+              </div>
+            </div>
+            </div>
             {isAdmin && (
               <div style={{ marginTop: "10px" }}>
                 <button
@@ -499,7 +506,7 @@ const UniversityPage: React.FC = () => {
           </div>
         </div>
       )}
-
+      
       {isCommentModalVisible && (
         <div
           style={{
@@ -566,6 +573,7 @@ const UniversityPage: React.FC = () => {
         </div>
       )}
     </div>
+    
   );
 };
 

@@ -6,6 +6,7 @@ import {
     createUniversity,
     updateUniversity,
     deleteUniversity,
+    getRankingAndCommentAndUniveristyByUniversityName
 } from "../services/database";
 import { University } from "../models/University";
 
@@ -126,6 +127,67 @@ router.delete("/:universityName", async (req: Request, res: Response) => {
     } catch (error) {
         console.error("Error deleting university:", error);
         res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+router.get('/:universityName/info', async (req: Request, res: Response) => {
+    const { universityName } = req.params;
+    const { 
+        source, 
+        academicRep, 
+        employerRep, 
+        facultyStudentScore, 
+        citationPerFaculty, 
+        internationalScore,
+        description,
+        establishmentDate,
+        location,
+        country,
+        popularity,
+        livingEnvironment,
+        learningAtmosphere,
+        library,
+        restaurant,
+        content,
+        date
+    } = req.query;
+  
+    try {
+    
+        
+      const data = await getRankingAndCommentAndUniveristyByUniversityName(
+        universityName as string || "",
+        source as string || "",
+        academicRep ? Number(academicRep) : 0,
+        employerRep ? Number(employerRep) : 0,
+        Number(facultyStudentScore) || 0,
+        Number(citationPerFaculty) || 0,
+        Number(internationalScore) || 0,
+        description as string || "",
+        establishmentDate as string || "",
+        location as string || "",
+        country as string || "",
+        Number(popularity) || 0,
+        Number(livingEnvironment) || 0,
+        Number(learningAtmosphere) || 0,
+        Number(library) || 0,
+        Number(restaurant) || 0,
+        content as string || "",
+        date ? new Date(date as string) : new Date()
+        
+    );
+  
+  
+      res.status(200).json({
+        success: true,
+        data: data,
+      });
+    } catch (error) {
+      console.error('Error fetching ranking and comments:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error',
+      });
     }
 });
 
