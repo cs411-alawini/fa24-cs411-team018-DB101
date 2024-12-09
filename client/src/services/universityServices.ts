@@ -10,7 +10,14 @@ export const getUniversityByName = async (universityName: string) => {
 export const getAllUniversities = async () => {
     return axios.get(`${API_BASE_URL}/api/university`);
 };
-
+export interface University {
+    universityName: string,
+    description: string,
+    establishmentDate: string,
+    location: string,
+    country: string,
+    popularity: number
+}
 export const getUniversityByPopularity = async (
     popularity: number,
     UniversityName?: string,
@@ -40,14 +47,14 @@ export const createUniversity = async (university: {
 };
 
 export const updateUniversity = async (
-universityName: string,
-updatedFields: {
-    description?: string;
-    establishmentDate?: string;
-    location?: string;
-    country?: string;
-    popularity?: number;
-}
+    universityName: string,
+    updatedFields: {
+        description?: string;
+        establishmentDate?: string;
+        location?: string;
+        country?: string;
+        popularity?: number;
+    }
 ) => {
     return axios.put(`${API_BASE_URL}/api/university/${encodeURIComponent(universityName)}`, updatedFields);
 };
@@ -59,9 +66,17 @@ export const deleteUniversity = async (universityName: string) => {
 export const getRankingAndCommentAndUniveristyByUniversityName = async (universityName: string) => {
     try {
         return await axios.get(`${API_BASE_URL}/api/university/${encodeURIComponent(universityName)}/info`);
-      } catch (error) {
+    } catch (error) {
         console.error("Error fetching university info:", error);
         throw error; // Rethrow the error for the caller to handle.
-      }
+    }
 };
 
+export const getPopularUniversity = async () => {
+    try {
+        return await axios.get(`${API_BASE_URL}/api/university/popular`);
+    } catch (error) {
+        console.error("Error fetching university info:", error);
+        throw error; // Rethrow the error for the caller to handle.
+    }
+}

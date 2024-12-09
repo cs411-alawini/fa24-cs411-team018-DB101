@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, ArrowRight, Book, Trophy, BarChart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PopularUniversity from '../components/popularUniversity';
 
 const Homepage = () => {
     const navigate = useNavigate();
@@ -25,21 +26,6 @@ const Homepage = () => {
                                 EDU Rank Insights
                             </a>
                         </div>
-
-                        {/* <div className="hidden md:flex flex-1 justify-center">
-                            <div className="flex items-center space-x-12">
-                                <a href="/university" className="text-gray-700 hover:text-blue-600 px-4 py-2 text-base font-semibold border-b-2 border-transparent hover:border-blue-600">
-                                    University
-                                </a>
-                                <a href="/ranking" className="text-gray-700 hover:text-blue-600 px-4 py-2 text-base font-semibold border-b-2 border-transparent hover:border-blue-600">
-                                    Ranking
-                                </a>
-                                <a href="/admission-data" className="text-gray-700 hover:text-blue-600 px-4 py-2 text-base font-semibold border-b-2 border-transparent hover:border-blue-600">
-                                    Admission Data
-                                </a>
-                            </div>
-                        </div> */}
-
                         <div className="flex items-center">
                             <a href="#" onClick={handleUserClick} className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 px-4 py-2">
                                 <User size={20} />
@@ -50,10 +36,7 @@ const Homepage = () => {
 
                 </div>
             </div>
-
-            {/* Main Content */}
-            <div className="container mx-auto px-4 py-12">
-                {/* Feature Cards */}
+            <div className="container mx-auto px-4 py-8">
                 <div className="grid md:grid-cols-3 gap-8 mb-12">
                     <div className="bg-white p-6 rounded-lg shadow-md">
                         <div className="bg-blue-100 p-3 rounded-full w-12 h-12 flex items-center justify-center mb-4">
@@ -94,6 +77,10 @@ const Homepage = () => {
                         </a>
                     </div>
                 </div>
+            </div>
+            <div className="container mx-auto px-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center" >Popular Universities</h2>
+                <PopularUniversity/>
             </div>
         </div>
     );

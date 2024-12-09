@@ -236,15 +236,15 @@ export async function filterRankingWithTransaction({
 // 查询国家列表的函数
 export async function getCountriesFromDatabase() {
     try {
-      // 执行查询
-      const [rows]: any = await pool.query("SELECT DISTINCT country FROM University;");
-      // 直接返回国家列表
-      return rows; // rows 应该是一个包含所有国家的数组
+        // 执行查询
+        const [rows]: any = await pool.query("SELECT DISTINCT country FROM University;");
+        // 直接返回国家列表
+        return rows; // rows 应该是一个包含所有国家的数组
     } catch (error) {
-      console.error("Error fetching countries:", error);
-      throw new Error("Failed to fetch countries");
+        console.error("Error fetching countries:", error);
+        throw new Error("Failed to fetch countries");
     }
-  }
+}
 
 /**
  * Fetches all universities from the database.
@@ -465,15 +465,6 @@ export async function createComment(comment: Comment): Promise<Comment> {
             ]
         );
 
-        // Update popularity
-        const [updateResult] = await connection.query<ResultSetHeader>(
-            `UPDATE University SET popularity = popularity + ? WHERE universityName = ?;`,
-            [1, comment.universityName]
-        );
-
-        if (updateResult.affectedRows === 0) {
-            throw new Error("Failed to update university popularity");
-        }
 
         await connection.commit(); // Commit transaction
         return { ...comment, commentId: result.insertId };
@@ -683,7 +674,7 @@ export async function getRankingAndCommentAndUniveristyByUniversityName(
     restaurant?: number,
     content?: string,
     date?: Date
-  ): Promise<any[]> {
+): Promise<any[]> {
     let sqlQuery = `
           SELECT DISTINCT
               rm.universityName,
@@ -734,7 +725,7 @@ export async function getRankingAndCommentAndUniveristyByUniversityName(
         ${content ? "AND c.content LIKE ?" : ""}
         
     `;
-  
+
     const queryParams = [`%${universityName}%`];
     if (source) queryParams.push(source);
     if (academicRep) queryParams.push(academicRep.toString());
@@ -752,17 +743,21 @@ export async function getRankingAndCommentAndUniveristyByUniversityName(
     if (library) queryParams.push(library.toString());
     if (restaurant) queryParams.push(restaurant.toString());
     if (content) queryParams.push(`%${content}%`);
-    if (date) {queryParams.push(date.toISOString().split('T')[0]);}
-    
+    if (date) { queryParams.push(date.toISOString().split('T')[0]); }
+
     try {
-      console.log("Executing Query:", sqlQuery);
-      console.log("With Parameters:", queryParams);
-      const [rows] = await pool.query(sqlQuery, queryParams);
-      return rows as any[];
+        console.log("Executing Query:", sqlQuery);
+        console.log("With Parameters:", queryParams);
+        const [rows] = await pool.query(sqlQuery, queryParams);
+        return rows as any[];
     } catch (error) {
-      console.error("Error in getRankingAndCommentAndUniversityByUniversityName:", error);
-      throw error;
+        console.error("Error in getRankingAndCommentAndUniversityByUniversityName:", error);
+        throw error;
     }
-  }
-  
-  
+}
+
+export async function getPopularUniversities():Promise<University[]> {
+    const sqlQuery = `SELECT * FROM University ORDER BY popularity DESC LIMIT 15;`;
+    const [rows] = await pool.query(sqlQuery);
+    return rows as University[];
+}

@@ -6,7 +6,8 @@ import {
     createUniversity,
     updateUniversity,
     deleteUniversity,
-    getRankingAndCommentAndUniveristyByUniversityName
+    getRankingAndCommentAndUniveristyByUniversityName,
+    getPopularUniversities
 } from "../services/database";
 import { University } from "../models/University";
 
@@ -17,6 +18,16 @@ const router = Router();
 router.get("/", async (req: Request, res: Response) => {
     try {
         const universities: University[] = await getAllUniversities();
+        res.status(200).json({ success: true, data: universities });
+    } catch (error) {
+        console.error("Error fetching universities:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+router.get("/popular", async (req: Request, res: Response) => {
+    try {
+        const universities: University[] = await getPopularUniversities();
         res.status(200).json({ success: true, data: universities });
     } catch (error) {
         console.error("Error fetching universities:", error);
