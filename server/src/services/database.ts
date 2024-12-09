@@ -180,25 +180,50 @@ export async function isFavourite(userID: number, universityName: string): Promi
     }
 }
 
-// Procedure filterRankingWithTransaction
-export async function filterRankingWithTransaction(
-    keyword: string | null,
-    country: string | null,
-    source: string | null,
-    academicRepFilter: string | null
-): Promise<any[]> {
+export async function filterRankingWithTransaction({
+    keyword = null,
+    country = null,
+    source = null,
+    academicRepFilter = null,
+    employerRepFilter = null,
+    facultyStudentFilter = null,
+    citationPerFacultyFilter = null,
+    internationalScoreFilter = null
+}: {
+    keyword?: string | null,
+    country?: string | null,
+    source?: string | null,
+    academicRepFilter?: string | null,
+    employerRepFilter?: string | null,
+    facultyStudentFilter?: string | null,
+    citationPerFacultyFilter?: string | null,
+    internationalScoreFilter?: string | null
+}): Promise<any[]> {
     try {
-        console.log("Calling FilterUniversityRankings with:", { keyword, country, source, academicRepFilter });
+        console.log("Calling FilterUniversityRankings with:", {
+            keyword,
+            country,
+            source,
+            academicRepFilter,
+            employerRepFilter,
+            facultyStudentFilter,
+            citationPerFacultyFilter,
+            internationalScoreFilter
+        });
 
         const [results]: any = await pool.query(
-            `CALL FilterUniversityRankings(?, ?, ?, ?)`,
+            `CALL FilterUniversityRankings(?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 keyword && keyword.trim() ? keyword : null,
                 country && country.trim() ? country : null,
                 source && source.trim() ? source : null,
-                academicRepFilter && academicRepFilter.trim() ? academicRepFilter : null
+                academicRepFilter && academicRepFilter.trim() ? academicRepFilter : null,
+                employerRepFilter && employerRepFilter.trim() ? employerRepFilter : null,
+                facultyStudentFilter && facultyStudentFilter.trim() ? facultyStudentFilter : null,
+                citationPerFacultyFilter && citationPerFacultyFilter.trim() ? citationPerFacultyFilter : null,
+                internationalScoreFilter && internationalScoreFilter.trim() ? internationalScoreFilter : null
             ]
-        );        
+        );
         console.log("FilterUniversityRankings executed successfully. Results:", results[0]);
         return results[0];
     } catch (error) {
@@ -206,6 +231,7 @@ export async function filterRankingWithTransaction(
         throw error;
     }
 }
+
 
 // 查询国家列表的函数
 export async function getCountriesFromDatabase() {

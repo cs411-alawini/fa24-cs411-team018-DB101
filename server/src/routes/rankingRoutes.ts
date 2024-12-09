@@ -5,23 +5,7 @@ import { log } from "console";
 
 const router = Router();
 
-// 搜索大学排名
-router.get("/search", async (req: Request, res: Response) => {
-    const { keyword, country, source, academicRepFilter } = req.query;
-                                        
-    try {
-        const rankings = await searchRanking(
-            (keyword as string) || "",
-            (country as string) || "",
-            (source as string) || "",
-            (academicRepFilter as string) || "" // 传递 academicRepFilter
-        );
-        res.status(200).json({ success: true, data: rankings });
-    } catch (error) {
-        console.error("Error in /searchRanking:", error);
-        res.status(500).json({ success: false, message: "Server error" });
-    }
-});
+
 
 
 
@@ -157,17 +141,29 @@ router.put("/update", async (req: Request, res: Response) => {
 });
 
 
-//Procedure
 router.post('/filter-ranking', async (req: Request, res: Response) => {
-    const { keyword, country, source, academicRepFilter } = req.body;
+    const { 
+        keyword, 
+        country, 
+        source, 
+        academicRepFilter, 
+        employerRepFilter, 
+        facultyStudentFilter, 
+        citationPerFacultyFilter, 
+        internationalScoreFilter 
+    } = req.body;
 
     try {
-        const rankings = await filterRankingWithTransaction(
-            keyword || null,
-            country || null,
-            source || null,
-            academicRepFilter || null
-        );
+        const rankings = await filterRankingWithTransaction({
+            keyword: keyword || null,
+            country: country || null,
+            source: source || null,
+            academicRepFilter: academicRepFilter || null,
+            employerRepFilter: employerRepFilter || null,
+            facultyStudentFilter: facultyStudentFilter || null,
+            citationPerFacultyFilter: citationPerFacultyFilter || null,
+            internationalScoreFilter: internationalScoreFilter || null,
+        });
 
         res.status(200).json({ success: true, data: rankings });
     } catch (error) {
@@ -175,6 +171,7 @@ router.post('/filter-ranking', async (req: Request, res: Response) => {
         res.status(500).json({ success: false, message: 'Failed to filter rankings.' });
     }
 });
+
 
 
 export default router;
