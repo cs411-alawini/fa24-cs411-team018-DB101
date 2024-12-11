@@ -1,0 +1,220 @@
+StoredProcedure and transaction
+1. FilterUniversityRankings：
+FilterUniversityRankings`(
+    IN p_keyword VARCHAR(255),
+    IN p_country VARCHAR(255),
+    IN p_source VARCHAR(255),
+    IN p_academicRepFilter VARCHAR(255),
+    IN p_employerRepFilter VARCHAR(255),
+    IN p_facultyStudentFilter VARCHAR(255),
+    IN p_citationFacultyFilter VARCHAR(255),
+    IN p_internationalScoreFilter VARCHAR(255)
+)
+BEGIN
+    START TRANSACTION;
+
+    SELECT
+        rm.universityName,
+        rm.source,
+        rm.academicRep,
+        rm.employerRep,
+        rm.facultyStudentScore,
+        rm.citationPerFaculty,
+        rm.internationalScore,
+        u.location,
+        u.country
+    FROM
+        RankingMetric rm
+    INNER JOIN
+        University u
+    ON
+        rm.universityName = u.universityName
+    WHERE
+        (p_keyword IS NULL OR rm.universityName LIKE CONCAT('%', p_keyword, '%'))
+        AND (p_country IS NULL OR u.country = p_country)
+        AND (p_source IS NULL OR rm.source = p_source)
+        AND (p_academicRepFilter IS NULL OR
+            (p_academicRepFilter = '<30' AND rm.academicRep < 30) OR
+            (p_academicRepFilter = '30-60' AND rm.academicRep BETWEEN 30 AND 60) OR
+            (p_academicRepFilter = '>60' AND rm.academicRep > 60))
+        AND (p_employerRepFilter IS NULL OR
+            (p_employerRepFilter = '<30' AND rm.employerRep < 30) OR
+            (p_employerRepFilter = '30-60' AND rm.employerRep BETWEEN 30 AND 60) OR
+            (p_employerRepFilter = '>60' AND rm.employerRep > 60))
+        AND (p_facultyStudentFilter IS NULL OR
+            (p_facultyStudentFilter = '<30' AND rm.facultyStudentScore < 30) OR
+            (p_facultyStudentFilter = '30-60' AND rm.facultyStudentScore BETWEEN 30 AND 60) OR
+            (p_facultyStudentFilter = '>60' AND rm.facultyStudentScore > 60))
+        AND (p_citationFacultyFilter IS NULL OR
+            (p_citationFacultyFilter = '<30' AND rm.citationPerFaculty < 30) OR
+            (p_citationFacultyFilter = '30-60' AND rm.citationPerFaculty BETWEEN 30 AND 60) OR
+            (p_citationFacultyFilter = '>60' AND rm.citationPerFaculty > 60))
+        AND (p_internationalScoreFilter IS NULL OR
+            (p_internationalScoreFilter = '<30' AND rm.internationalScore < 30) OR
+            (p_internationalScoreFilter = '30-60' AND rm.internationalScore BETWEEN 30 AND 60) OR
+            (p_internationalScoreFilter = '>60' AND rm.internationalScore > 60));
+
+    COMMIT;
+END
+2. SearchAdmissionData(IN searchTerms VARCHAR(255))
+BEGIN
+        DECLARE current_term VARCHAR(255);
+        DECLARE exit_handler BOOLEAN DEFAULT FALSE;
+        DECLARE term_round INT DEFAULT 10;
+        DECLARE CONTINUE HANDLER FOR SQLEXCEPTION
+        BEGIN
+            SET exit_handler = TRUE;
+            ROLLBACK;
+            DROP TEMPORARY TABLE IF EXISTS temp_results;
+        END;
+
+
+        START TRANSACTION;
+        CREATE TEMPORARY TABLE IF NOT EXISTS temp_results(
+            adID INT,
+            universityName VARCHAR(255),
+            program VARCHAR(255),
+            admissionSeason VARCHAR(255),
+            notificationTime DATE,
+            GPA DOUBLE,
+            languageProficiencyType VARCHAR(255),
+            languageScore DOUBLE,
+            GRE DOUBLE,
+            Notes VARCHAR(255),
+            userID INT,
+            round INT,
+            weight INT,
+            PRIMARY KEY (adID)
+        );
+
+
+        SET searchTerms = TRIM(REGEXP_REPLACE(searchTerms, '\\s+', ' '));
+        search_loop: WHILE searchTerms != '' AND NOT exit_handler DO
+            SET current_term = TRIM(SUBSTRING_INDEX(searchTerms, ' ', 1));
+            -- break
+            IF current_term = '' THEN
+                LEAVE search_loop;
+            END IF;
+            INSERT INTO temp_results (adID, universityName, program, admissionSeason, notificationTime, GPA, languageProficiencyType, languageScore, GRE, Notes, userID, weight)
+            SELECT DISTINCT a.adID, a.universityName, a.program, a.admissionSeason,a.notificationTime, a.GPA, a.languageProficiencyType,a.languageScore, a.GRE, a.Notes, a.userID, term_round * 10 as weight
+            FROM AdmissionData a
+            WHERE
+                -- universityName, program, year
+                LOWER(a.universityName) LIKE LOWER(CONCAT('%', current_term, '%'))
+                OR LOWER(a.program) LIKE LOWER(CONCAT('%', current_term, '%'))
+                OR LOWER(a.admissionSeason) LIKE LOWER(CONCAT('%', current_term, '%'))
+            ON DUPLICATE KEY UPDATE
+                weight = weight + term_round * 10;
+
+            SET searchTerms = TRIM(SUBSTRING(searchTerms, LENGTH(current_term) + 1));
+            SET term_round = term_round - 1;
+        END WHILE;
+
+
+        IF NOT exit_handler THEN
+            SELECT adID, universityName, program, admissionSeason,
+            notificationTime, GPA, languageProficiencyType,
+            languageScore, GRE, Notes, userID
+            FROM temp_results
+            ORDER BY weight DESC, SUBSTRING_INDEX(admissionSeason, ' ', 1) DESC,
+CASE WHEN admissionSeason LIKE '%Fall%' THEN 1 WHEN admissionSeason LIKE '%Spring%' THEN 2 ELSE 3 END ASC;
+            COMMIT;
+        END IF;
+
+
+        DROP TEMPORARY TABLE IF EXISTS temp_results;
+END
+
+3. AnalyzeAdmissionChances(
+    IN userGPA DOUBLE,
+    IN targetCountry VARCHAR(255),
+    IN targetProgram VARCHAR(255),
+    IN analysisType INT
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+   BEGIN
+       DROP TEMPORARY TABLE IF EXISTS temp_program_stats;
+       ROLLBACK;
+       RESIGNAL;
+   END;
+    START TRANSACTION;
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_program_stats
+    SELECT
+        ad.universityName as universityName,
+        ad.program as program,
+        Round(AVG(ad.GPA),2) as avgGPA,
+        COUNT(*) as totalAdmissions
+    FROM AdmissionData ad
+    JOIN University u ON ad.universityName = u.universityName
+    WHERE u.country = targetCountry
+    AND ad.program LIKE CONCAT('%', targetProgram, '%')
+    GROUP BY ad.universityName, ad.program;
+
+
+
+IF analysisType = 1 THEN
+    SELECT
+        universityName,
+        program,
+        avgGPA,
+        totalAdmissions
+    FROM temp_program_stats
+    WHERE avgGPA < (userGPA - 0.15)
+    ORDER BY avgGPA DESC
+    LIMIT 5;
+ELSEIF analysisType = 2 THEN
+    SELECT
+        universityName,
+        program,
+        avgGPA,
+        totalAdmissions
+    FROM temp_program_stats
+    WHERE avgGPA BETWEEN (userGPA - 0.15) AND (userGPA + 0.15)
+    ORDER BY userGPA-avgGPA
+    LIMIT 5;
+ELSEIF analysisType = 3 THEN
+    SELECT
+        universityName,
+        program,
+        avgGPA,
+        totalAdmissions
+    FROM temp_program_stats
+    WHERE avgGPA > (userGPA + 0.15)
+    ORDER BY avgGPA ASC
+    LIMIT 5;
+ELSE
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Please use 1 (Safety), 2 (Target), or 3 (Reach)';
+END IF;
+
+
+    DROP TEMPORARY TABLE IF EXISTS temp_program_stats;
+
+    COMMIT;
+END
+
+Trigger:
+after_comment_insert:
+BEGIN
+    DECLARE current_popularity INT;
+    
+    SELECT popularity INTO current_popularity
+    FROM University
+    WHERE universityName = NEW.universityName;
+    
+    IF current_popularity IS NULL THEN
+        UPDATE University 
+        SET popularity = 1
+        WHERE universityName = NEW.universityName;
+    ELSE
+        UPDATE University 
+        SET popularity = popularity + 1
+        WHERE universityName = NEW.universityName;
+    END IF;
+END
+
+Constraints:
+For universityName filed in tables except University, they must belong to an existing university. We use foreign key to ensure that. Once a university is deleted, the according data about that university will be deleted as well, we use cascade to implement that.
+For userID filed in tables except User, they must belong to an existing user. We use foreign key to ensure that. Once an account is deleted, the according data posted by that user will also be deleted, we use cascade to implement that.
+
